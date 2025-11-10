@@ -1,0 +1,6 @@
+
+*.sublime-workspace
+*.pyc
+*.psd
+
+Documentation/
