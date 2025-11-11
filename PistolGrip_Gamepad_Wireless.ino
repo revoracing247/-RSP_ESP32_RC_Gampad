@@ -159,15 +159,28 @@ Date: 10/03/2025
 #define TRIM_MIN 25 // trim pots get crazy around the edges
 #define TRIM_MAX (ADC_MAX - TRIM_MIN)
 
-#define NUM_BUTTONS      7
-#define NUM_HAT_SWITCHES 1
+#define NUM_BUTTONS      6
+#define NUM_HAT_SWITCHES 0
+#define ENABLE_X true
+#define ENABLE_Y true
+#define ENABLE_Z false
+#define ENABLE_RX true
+#define ENABLE_RY true
+#define ENABLE_RZ false
+#define ENABLE_SLIDER1 false
+#define ENABLE_SLIDER2 false
+#define ENABLE_RUDDER false
+#define ENABLE_THROTTLE false
+#define ENABLE_ACCELERATOR false
+#define ENABLE_BRAKE false
+#define ENABLE_STEERING false
 
 // +--------------------------------------------------------------+
 // |                           Globals                            |
 // +--------------------------------------------------------------+
 
-BleGamepad bleGamepad;
-BleGamepadConfiguration bleGamepadConfig;
+// BleGamepad bleGamepad;
+BleGamepad bleGamepad("BLE Driving Controller", "lemmingDev", 100);
 
 int ThrottleMin = STARTING_LIMITS;
 int ThrottleMax = ADC_MAX - STARTING_LIMITS;
@@ -188,6 +201,14 @@ bool LastSetBtn       = false;
 bool LastTopBtn       = false;
 bool LastMidBtn       = false;
 bool LastBtmBtn       = false;
+
+//int16_t simMin = 0x8000;      // -32767 --> Some non-Windows operating systems and web based gamepad testers don't like min axis set below 0, so 0 is set by default
+//int16_t axesCenter = 0x00;      
+int16_t simMin = 0x00;        // Set simulation minimum axes to zero.
+int16_t axesCenter = 0x3FFF;
+int16_t simMax = 0x7FFF;        // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
+int16_t stepAmount = 0xFF;
+uint16_t delayAmount = 25;
 
 void setup()
 {
@@ -225,18 +246,29 @@ void setup()
 	// |          Bluetooth           |
 	// +==============================+
 	// bleGamepad.begin();
-
+	BleGamepadConfiguration bleGamepadConfig;
 	bleGamepadConfig.setAutoReport(false);
 	bleGamepadConfig.setControllerType(CONTROLLER_TYPE_GAMEPAD); // CONTROLLER_TYPE_JOYSTICK, CONTROLLER_TYPE_GAMEPAD (DEFAULT), CONTROLLER_TYPE_MULTI_AXIS
 	bleGamepadConfig.setButtonCount(NUM_BUTTONS);
 	bleGamepadConfig.setHatSwitchCount(NUM_HAT_SWITCHES);
-	bleGamepadConfig.setVid(0xe502);
-	bleGamepadConfig.setPid(0xabcd);
+    bleGamepadConfig.setWhichAxes(ENABLE_X, ENABLE_Y, ENABLE_Z, ENABLE_RX, ENABLE_RY, ENABLE_RZ, ENABLE_SLIDER1, ENABLE_SLIDER2);      // Can also be done per-axis individually. All are true by default
+    bleGamepadConfig.setWhichSimulationControls(ENABLE_RUDDER, ENABLE_THROTTLE, ENABLE_ACCELERATOR, ENABLE_BRAKE, ENABLE_STEERING); // Can also be done per-control individually. All are false by default
+    bleGamepadConfig.setSimulationMin(simMin);
+    bleGamepadConfig.setSimulationMax(simMax);
+	// bleGamepadConfig.setVid(0xe502);
+	// bleGamepadConfig.setPid(0xabcd);
 	// Some non-Windows operating systems and web based gamepad testers don't like min axis set below 0, so 0 is set by default
-	bleGamepadConfig.setAxesMin(0x8001); // -32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
-	// bleGamepadConfig.setAxesMin(0x0000); // 0 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
+	// bleGamepadConfig.setAxesMin(0x8001); // -32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
+	bleGamepadConfig.setAxesMin(0x0000); // 0 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
 	bleGamepadConfig.setAxesMax(0x7FFF); // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal 
 	bleGamepad.begin(&bleGamepadConfig); // Simulation controls, special buttons and hats 2/3/4 are disabled by default
+
+    // Set steering to center
+    bleGamepad.setSteering(axesCenter);
+
+    // Set brake and accelerator to min
+    bleGamepad.setBrake(simMin);
+    bleGamepad.setAccelerator(simMax);
 
 	// Changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
 
@@ -333,8 +365,11 @@ void loop()
 	}
 	else
 	{
-		analogWrite(PIN_LED_RED,   mapRange(adjustedThrottle, 0, ADC_MAX, PWM_LED_MIN, PWM_LED_MAX));
-		analogWrite(PIN_LED_GREEN, mapRange(adjustedSteering, 0, ADC_MAX, PWM_LED_MIN, PWM_LED_MAX));
+		analogWrite(PIN_LED_RED,   mapRange(adjustedThrottleTrim, 0, ADC_MAX, PWM_LED_MIN, PWM_LED_MAX));
+		analogWrite(PIN_LED_GREEN, mapRange(adjustedSteeringTrim, 0, ADC_MAX, PWM_LED_MIN, PWM_LED_MAX));
+
+		// analogWrite(PIN_LED_RED,   mapRange(adjustedThrottle, 0, ADC_MAX, PWM_LED_MIN, PWM_LED_MAX));
+		// analogWrite(PIN_LED_GREEN, mapRange(adjustedSteering, 0, ADC_MAX, PWM_LED_MIN, PWM_LED_MAX));
 	}
 
 	// +--------------------------------------------------------------+
@@ -406,19 +441,26 @@ void loop()
 	// +--------------------------------------------------------------+
     if (bleGamepad.isConnected())
     {
+
         // Serial.println("Press buttons 5, 16 and start. Move all enabled axes to max. Set DPAD (hat 1) to down right.");
-        if     (!LastThumbBtn && !digitalRead(PIN_THMB_BTN)){ bleGamepad.press(BUTTON_5); }
-        else if( LastThumbBtn &&  digitalRead(PIN_THMB_BTN)){ bleGamepad.release(BUTTON_5); }
+        if     (!LastThumbBtn && !digitalRead(PIN_THMB_BTN)){ bleGamepad.press(BUTTON_1); }
+        else if( LastThumbBtn &&  digitalRead(PIN_THMB_BTN)){ bleGamepad.release(BUTTON_1); }
+        LastThumbBtn = !digitalRead(PIN_THMB_BTN);
 
-        if     (!LastMenuBtn && !digitalRead(PIN_MENU_BTN)){ bleGamepad.pressStart(); }
-        else if( LastMenuBtn &&  digitalRead(PIN_MENU_BTN)){ bleGamepad.releaseStart(); }
+        // if     (!LastMenuBtn && !digitalRead(PIN_MENU_BTN)){ bleGamepad.pressStart(); }
+        // else if( LastMenuBtn &&  digitalRead(PIN_MENU_BTN)){ bleGamepad.releaseStart(); }
+        if     (!LastMenuBtn && !digitalRead(PIN_MENU_BTN)){ bleGamepad.press(BUTTON_3); }
+        else if( LastMenuBtn &&  digitalRead(PIN_MENU_BTN)){ bleGamepad.release(BUTTON_3); }
+        LastMenuBtn = !digitalRead(PIN_MENU_BTN);
 
-        if     (!LastSetBtn && !digitalRead(PIN_SET_BTN)){ bleGamepad.press(BUTTON_16); }
-        else if( LastSetBtn &&  digitalRead(PIN_SET_BTN)){ bleGamepad.release(BUTTON_16); }
+        if     (!LastSetBtn && !digitalRead(PIN_SET_BTN)){ bleGamepad.press(BUTTON_2); }
+        else if( LastSetBtn &&  digitalRead(PIN_SET_BTN)){ bleGamepad.release(BUTTON_2); }
+        LastSetBtn = !digitalRead(PIN_SET_BTN);
 
-        bleGamepad.setAxes(leftXAxis, leftYAxis, 0, rightXAxis, rightYAxis, 0);       //(X, Y, Z, RX, RY, RZ)
+        bleGamepad.setAxes(axesCenter, axesCenter, 0, rightXAxis, rightYAxis, 0);       //(X, Y, Z, RX, RY, RZ)
+        // bleGamepad.setAxes(leftXAxis, leftYAxis, 0, rightXAxis, rightYAxis, 0);       //(X, Y, Z, RX, RY, RZ)
         bleGamepad.sendReport();
-        delay(10);
+        // delay(10);
         //bleGamepad.setHIDAxes(32767, 32767, 32767, 32767, 32767, 32767, 32767, 32767);  //(X, Y, Z, RZ, RX, RY)
         // bleGamepad.setHat1(HAT_CENTERED);
         // All axes, sliders, hats etc can also be set independently. See the IndividualAxes.ino example
