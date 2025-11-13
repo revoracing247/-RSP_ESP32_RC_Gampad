@@ -144,10 +144,11 @@ Date: 10/03/2025
 // +--------------------------------------------------------------+
 // |                          Constants                           |
 // +--------------------------------------------------------------+
-#define ADC_MAX  1023 // For Pro Micro 10-Bit (1024 values, ie. 0-1023)
+// #define ADC_MAX  1023 // For Pro Micro 10-Bit (1024 values, ie. 0-1023)
+#define ADC_MAX  0xFFF // For ESP32-C3 12-Bit (4095 values, ie. 0-1023)
 #define ADC_HALF ((ADC_MAX+1)/2)
-#define XINPUT_MAX 65536 // 16 bit resolution
-#define XINPUT_MIN -65536 // 16 bit resolution
+#define XINPUT_MAX 0xFFFF // 65536 i.e. 16 bit resolution
+#define XINPUT_MIN -65536 // 16 bit resolution i.e. 0x10000
 #define CONV_MULTI (XINPUT_MAX/(ADC_MAX+1)) // Conversion multiplier from ADC to XINPUT resolutions
 #define STARTING_LIMITS 100 // every potentiometer is different so we'll ring the values in a bit to start
 
@@ -180,7 +181,7 @@ Date: 10/03/2025
 // +--------------------------------------------------------------+
 
 // BleGamepad bleGamepad;
-BleGamepad bleGamepad("BLE Driving Controller", "lemmingDev", 100);
+BleGamepad bleGamepad("RSP Controller", "ReadySetProjects", 100);
 
 int ThrottleMin = STARTING_LIMITS;
 int ThrottleMax = ADC_MAX - STARTING_LIMITS;
@@ -238,14 +239,12 @@ void setup()
 	// +==============================+
 	// |            Serial            |
 	// +==============================+
-	// Serial.begin(9600); // TODO: needed?
-	Serial.begin(115200);
-	Serial.println("Starting BLE work!");
+	// Serial.begin(115200);
+	// Serial.println("Starting BLE work!");
 	
 	// +==============================+
 	// |          Bluetooth           |
 	// +==============================+
-	// bleGamepad.begin();
 	BleGamepadConfiguration bleGamepadConfig;
 	bleGamepadConfig.setAutoReport(false);
 	bleGamepadConfig.setControllerType(CONTROLLER_TYPE_GAMEPAD); // CONTROLLER_TYPE_JOYSTICK, CONTROLLER_TYPE_GAMEPAD (DEFAULT), CONTROLLER_TYPE_MULTI_AXIS
@@ -255,8 +254,9 @@ void setup()
     bleGamepadConfig.setWhichSimulationControls(ENABLE_RUDDER, ENABLE_THROTTLE, ENABLE_ACCELERATOR, ENABLE_BRAKE, ENABLE_STEERING); // Can also be done per-control individually. All are false by default
     bleGamepadConfig.setSimulationMin(simMin);
     bleGamepadConfig.setSimulationMax(simMax);
-	// bleGamepadConfig.setVid(0xe502);
-	// bleGamepadConfig.setPid(0xabcd);
+    bleGamepadConfig.setHidReportId(55);
+	bleGamepadConfig.setVid(0xe502);
+	bleGamepadConfig.setPid(0xabcd);
 	// Some non-Windows operating systems and web based gamepad testers don't like min axis set below 0, so 0 is set by default
 	// bleGamepadConfig.setAxesMin(0x8001); // -32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
 	bleGamepadConfig.setAxesMin(0x0000); // 0 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
@@ -430,12 +430,15 @@ void loop()
 
 	// A1, A3 RIGHT
 	// These are trims TODO: implment them to trim digitally (this is just for POC)
-	int rightXAxis = (steeringTrimPosition - ADC_HALF) * CONV_MULTI;
-	int rightYAxis = (XINPUT_MAX - (throttleTrimPosition - ADC_HALF) * CONV_MULTI);
+	// int rightXAxis = (steeringTrimPosition - ADC_HALF) * CONV_MULTI;
+	// int rightYAxis = (XINPUT_MAX - (throttleTrimPosition - ADC_HALF) * CONV_MULTI);
+
+	int rightXAxis = mapRange(adjustedSteeringTrim, 0, ADC_MAX, 0, 0x7FFF);
+	int rightYAxis = mapRange(adjustedThrottleTrim, 0, ADC_MAX, 0, 0x7FFF);
 	// XInput.setJoystick(JOY_RIGHT, rightXAxis, rightYAxis);
 
 	// XInput.send();
-
+	
 	// +--------------------------------------------------------------+
 	// |                         BLE Gamepad                          |
 	// +--------------------------------------------------------------+
@@ -443,19 +446,12 @@ void loop()
     {
 
         // Serial.println("Press buttons 5, 16 and start. Move all enabled axes to max. Set DPAD (hat 1) to down right.");
-        if     (!LastThumbBtn && !digitalRead(PIN_THMB_BTN)){ bleGamepad.press(BUTTON_1); }
-        else if( LastThumbBtn &&  digitalRead(PIN_THMB_BTN)){ bleGamepad.release(BUTTON_1); }
-        LastThumbBtn = !digitalRead(PIN_THMB_BTN);
-
-        // if     (!LastMenuBtn && !digitalRead(PIN_MENU_BTN)){ bleGamepad.pressStart(); }
-        // else if( LastMenuBtn &&  digitalRead(PIN_MENU_BTN)){ bleGamepad.releaseStart(); }
-        if     (!LastMenuBtn && !digitalRead(PIN_MENU_BTN)){ bleGamepad.press(BUTTON_3); }
-        else if( LastMenuBtn &&  digitalRead(PIN_MENU_BTN)){ bleGamepad.release(BUTTON_3); }
-        LastMenuBtn = !digitalRead(PIN_MENU_BTN);
-
-        if     (!LastSetBtn && !digitalRead(PIN_SET_BTN)){ bleGamepad.press(BUTTON_2); }
-        else if( LastSetBtn &&  digitalRead(PIN_SET_BTN)){ bleGamepad.release(BUTTON_2); }
-        LastSetBtn = !digitalRead(PIN_SET_BTN);
+        if     (!bleGamepad.isPressed(BUTTON_1) && !digitalRead(PIN_THMB_BTN)){ bleGamepad.press(BUTTON_1); }
+        else if( bleGamepad.isPressed(BUTTON_1) &&  digitalRead(PIN_THMB_BTN)){ bleGamepad.release(BUTTON_1); }
+        if     (!bleGamepad.isPressed(BUTTON_2) && !digitalRead(PIN_SET_BTN)){ bleGamepad.press(BUTTON_2); }
+        else if( bleGamepad.isPressed(BUTTON_2) &&  digitalRead(PIN_SET_BTN)){ bleGamepad.release(BUTTON_2); }
+        if     (!bleGamepad.isPressed(BUTTON_3) && !digitalRead(PIN_MENU_BTN)){ bleGamepad.press(BUTTON_3); }
+        else if( bleGamepad.isPressed(BUTTON_3) &&  digitalRead(PIN_MENU_BTN)){ bleGamepad.release(BUTTON_3); }
 
         bleGamepad.setAxes(axesCenter, axesCenter, 0, rightXAxis, rightYAxis, 0);       //(X, Y, Z, RX, RY, RZ)
         // bleGamepad.setAxes(leftXAxis, leftYAxis, 0, rightXAxis, rightYAxis, 0);       //(X, Y, Z, RX, RY, RZ)
