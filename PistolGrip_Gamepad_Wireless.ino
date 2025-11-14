@@ -13,6 +13,10 @@ Date: 10/03/2025
 
 #define VERSION_MAJOR 3
 
+// +--------------------------------------------------------------+
+// |                       Connection Notes                       |
+// +--------------------------------------------------------------+
+
 // +==============================+
 // |         TQi Pinouts          |
 // +==============================+
@@ -79,27 +83,61 @@ Date: 10/03/2025
 // +==============================+
 // |        XINPUT Buttons        |
 // +==============================+
-/*
-	BUTTON_LOGO = 0,
-	BUTTON_A = 1,
-	BUTTON_B = 2,
-	BUTTON_X = 3,
-	BUTTON_Y = 4,
-	BUTTON_LB = 5,
-	BUTTON_RB = 6,
-	BUTTON_BACK = 7,
-	BUTTON_START = 8,
-	BUTTON_L3 = 9,
-	BUTTON_R3 = 10,
-	DPAD_UP = 11,
-	DPAD_DOWN = 12,
-	DPAD_LEFT = 13,
-	DPAD_RIGHT = 14,
-	TRIGGER_LEFT = 15,
-	TRIGGER_RIGHT = 16,
-	JOY_LEFT,
-	JOY_RIGHT,
-*/
+
+#define BUTTON_LOGO   0
+#define BUTTON_A      1
+#define BUTTON_B      2
+#define BUTTON_X      3
+#define BUTTON_Y      4
+#define BUTTON_LB     5
+#define BUTTON_RB     6
+#define BUTTON_BACK   7
+#define BUTTON_START  8
+#define BUTTON_L3     9
+#define BUTTON_R3     10
+#define DPAD_UP       11
+#define DPAD_DOWN     12
+#define DPAD_LEFT     13
+#define DPAD_RIGHT    14
+#define TRIGGER_LEFT  15
+#define TRIGGER_RIGHT 16
+#define JOY_LEFT      17
+#define JOY_RIGHT     18
+
+// +--------------------------------------------------------------+
+// |                     Compile Time Options                     |
+// +--------------------------------------------------------------+
+#define NEG_AXIS     false // set axis range -32767 to 32767 (Some non-Windows operating systems and web based gamepad testers don't like min axis set below 0, so 0 is set by default)
+#define SIM_CONTROLS false // enable and map throttle/steering to "sim" controls
+
+// BLE_Gamepad_Config
+#define NUM_BUTTONS      8 // do be able to natrually map BUTTON_BACK in Re-Volt. we only have 6 actual
+#define NUM_HAT_SWITCHES 0
+#define ENABLE_X true
+#define ENABLE_Y true
+#define ENABLE_Z false
+#define ENABLE_RX true
+#define ENABLE_RY true
+#define ENABLE_RZ false
+#define ENABLE_SLIDER1 false
+#define ENABLE_SLIDER2 false
+#if SIM_CONTROLS
+	#define ENABLE_RUDDER false
+	#define ENABLE_THROTTLE true
+	#define ENABLE_ACCELERATOR false
+	#define ENABLE_BRAKE true
+	#define ENABLE_STEERING true
+#else
+	#define ENABLE_RUDDER false
+	#define ENABLE_THROTTLE false
+	#define ENABLE_ACCELERATOR false
+	#define ENABLE_BRAKE false
+	#define ENABLE_STEERING false
+#endif
+
+// +--------------------------------------------------------------+
+// |                       Mapping Defines                        |
+// +--------------------------------------------------------------+
 
 // +==============================+
 // |   Re-Volt XINPUT MAapping    |
@@ -137,16 +175,49 @@ Date: 10/03/2025
 #define PIN_SET_BTN   (6)  // GPIO6  // (4) // D4
 #define PIN_LED_RED   (7)  // GPIO7  // (5) // D5 NOTE: PWM!
 #define PIN_LED_GREEN (10) // GPIO10 // (6) // D6 NOTE: PWM!
-// #define PIN_TOP_BTN   (19) // GPIO19 // (7) // D7 NOTE: USB Uses this?
+#define PIN_TOP_BTN   (19) // GPIO19 // (7) // D7 NOTE: USB Uses this?
 #define PIN_MID_BTN   (20) // GPIO20 // (8) // D8
 #define PIN_BTM_BTN   (21) // GPIO21 // (9) // D9
+
+// +==============================+
+// |        Button Mapping        |
+// +==============================+
+#define XIN_THMB_BTN  REVOLT_ACCEPT_ITEM
+#define XIN_MENU_BTN  REVOLT_BACK_PAUSE
+#define XIN_SET_BTN   REVOLT_FLIP_CAR
+#define XIN_TOP_BTN   REVOLT_RESET_CAR
+#define XIN_MID_BTN   REVOLT_HORN
+#define XIN_BTM_BTN   REVOLT_LOOK_BACK
+
+// +--------------------------------------------------------------+
+// |                        Controller IDs                        |
+// +--------------------------------------------------------------+
+#define VENDOR_ID 0xC01B // Colby!
+
+#define CONTROLLER_ID 0x1234 // Test ESP32-C3
+// #define CONTROLLER_ID 0x8840 // A0148840 First ESP32-S3 controller
+// #define CONTROLLER_ID 0x2285 // A0392285 Has throttle adjuster thing
+// #define CONTROLLER_ID 0x1549 // A0381549
+// #define CONTROLLER_ID 0x1459 // A0381459
+// #define CONTROLLER_ID 0x9313 // A0359313
+// #define CONTROLLER_ID 0x9295 // A0359295
+// #define CONTROLLER_ID 0x6966 // A0306966
+// #define CONTROLLER_ID 0x6712 // A0306712
+// #define CONTROLLER_ID 0x8987 // A0148987 Currently an Arduino controller
+// #define CONTROLLER_ID 0x8750 // A0148750
+// #define CONTROLLER_ID 48840
+// #define CONTROLLER_ID 48840
+// #define CONTROLLER_ID 48840
+// #define CONTROLLER_ID 48840
+// #define CONTROLLER_ID 48840
+// #define CONTROLLER_ID 48840
 
 // +--------------------------------------------------------------+
 // |                          Constants                           |
 // +--------------------------------------------------------------+
-// #define ADC_MAX  1023 // For Pro Micro 10-Bit (1024 values, ie. 0-1023)
-#define ADC_MAX  0xFFF // For ESP32-C3 12-Bit (4095 values, ie. 0-1023)
-#define ADC_HALF ((ADC_MAX+1)/2)
+#define ADC_MAX      0xFFF // For ESP32-C3 12-Bit (4096 values, ie. 0-4095)
+#define ADC_HALF     ((ADC_MAX+1)/2)
+#define ADC_FILT_LEN 5 // Rolling average length
 #define XINPUT_MAX 0xFFFF // 65536 i.e. 16 bit resolution
 #define XINPUT_MIN -65536 // 16 bit resolution i.e. 0x10000
 #define CONV_MULTI (XINPUT_MAX/(ADC_MAX+1)) // Conversion multiplier from ADC to XINPUT resolutions
@@ -156,31 +227,30 @@ Date: 10/03/2025
 #define PWM_LED_MIN 0 // LEDs don't turn on till this?
 #define PWM_CONV_MULTI (PWM_LED_MAX - PWM_LED_MIN) // Conversion multiplier from ADC to XINPUT resolutions
 
-#define TRIM_PERCENT 0.20 //% amount of range trim can adjust center point
-#define TRIM_MIN 25 // trim pots get crazy around the edges
+#define TRIM_PERCENT 0.30 //% amount of range trim can adjust center point
+#define TRIM_MIN 10 // trim pots get crazy around the edges
 #define TRIM_MAX (ADC_MAX - TRIM_MIN)
 
-#define NUM_BUTTONS      6
-#define NUM_HAT_SWITCHES 0
-#define ENABLE_X true
-#define ENABLE_Y true
-#define ENABLE_Z false
-#define ENABLE_RX true
-#define ENABLE_RY true
-#define ENABLE_RZ false
-#define ENABLE_SLIDER1 false
-#define ENABLE_SLIDER2 false
-#define ENABLE_RUDDER false
-#define ENABLE_THROTTLE false
-#define ENABLE_ACCELERATOR false
-#define ENABLE_BRAKE false
-#define ENABLE_STEERING false
+#if NEG_AXIS
+	#define SIM_MIN     0x8000 // -32767
+	#define AXIS_CENTER 0x0000      
+	#define SIM_MAX     0x7FFF // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
+	#define AXIS_MIN    0x8000 // -32767
+	#define AXIS_CENTER 0x0000      
+	#define AXIS_MAX    0x7FFF
+#else
+	#define SIM_MIN     0x0000
+	#define SIM_CENTER  0x3FFF
+	#define SIM_MAX     0x7FFF // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
+	#define AXIS_MIN    0x0000
+	#define AXIS_CENTER 0x3FFF
+	#define AXIS_MAX    0x7FFF
+#endif
 
 // +--------------------------------------------------------------+
 // |                           Globals                            |
 // +--------------------------------------------------------------+
 
-// BleGamepad bleGamepad;
 BleGamepad bleGamepad("RSP Controller", "ReadySetProjects", 100);
 
 int ThrottleMin = STARTING_LIMITS;
@@ -203,13 +273,10 @@ bool LastTopBtn       = false;
 bool LastMidBtn       = false;
 bool LastBtmBtn       = false;
 
-//int16_t simMin = 0x8000;      // -32767 --> Some non-Windows operating systems and web based gamepad testers don't like min axis set below 0, so 0 is set by default
-//int16_t axesCenter = 0x00;      
-int16_t simMin = 0x00;        // Set simulation minimum axes to zero.
-int16_t axesCenter = 0x3FFF;
-int16_t simMax = 0x7FFF;        // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
-int16_t stepAmount = 0xFF;
-uint16_t delayAmount = 25;
+uint AdcBufferThrottle[ADC_FILT_LEN] = {0};
+uint AdcBufferSteering[ADC_FILT_LEN] = {0};
+uint AdcBufferSteeringTrim[ADC_FILT_LEN] = {0};
+uint AdcBufferThrottleTrim[ADC_FILT_LEN] = {0};
 
 void setup()
 {
@@ -251,27 +318,26 @@ void setup()
 	bleGamepadConfig.setButtonCount(NUM_BUTTONS);
 	bleGamepadConfig.setHatSwitchCount(NUM_HAT_SWITCHES);
     bleGamepadConfig.setWhichAxes(ENABLE_X, ENABLE_Y, ENABLE_Z, ENABLE_RX, ENABLE_RY, ENABLE_RZ, ENABLE_SLIDER1, ENABLE_SLIDER2);      // Can also be done per-axis individually. All are true by default
+    bleGamepadConfig.setAxesMin(AXIS_MIN);
+	bleGamepadConfig.setAxesMax(AXIS_MAX);
+
+    #if SIM_CONTROLS
     bleGamepadConfig.setWhichSimulationControls(ENABLE_RUDDER, ENABLE_THROTTLE, ENABLE_ACCELERATOR, ENABLE_BRAKE, ENABLE_STEERING); // Can also be done per-control individually. All are false by default
-    bleGamepadConfig.setSimulationMin(simMin);
-    bleGamepadConfig.setSimulationMax(simMax);
-    bleGamepadConfig.setHidReportId(55);
-	bleGamepadConfig.setVid(0xe502);
-	bleGamepadConfig.setPid(0xabcd);
-	// Some non-Windows operating systems and web based gamepad testers don't like min axis set below 0, so 0 is set by default
-	// bleGamepadConfig.setAxesMin(0x8001); // -32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
-	bleGamepadConfig.setAxesMin(0x0000); // 0 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
-	bleGamepadConfig.setAxesMax(0x7FFF); // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal 
-	bleGamepad.begin(&bleGamepadConfig); // Simulation controls, special buttons and hats 2/3/4 are disabled by default
+    bleGamepadConfig.setSimulationMin(SIM_MIN);
+    bleGamepadConfig.setSimulationMax(SIM_MAX);
+    #endif
 
+    // bleGamepadConfig.setHidReportId(0x5); // unneeded right?
+	bleGamepadConfig.setVid(VENDOR_ID);
+	bleGamepadConfig.setPid(CONTROLLER_ID);
+	bleGamepad.begin(&bleGamepadConfig); // Changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
+
+    #if SIM_CONTROLS
     // Set steering to center
-    bleGamepad.setSteering(axesCenter);
-
-    // Set brake and accelerator to min
-    bleGamepad.setBrake(simMin);
-    bleGamepad.setAccelerator(simMax);
-
-	// Changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
-
+    bleGamepad.setSteering(SIM_CENTER);
+    bleGamepad.setBrake(SIM_MIN);
+    bleGamepad.setAccelerator(SIM_MIN);
+    #endif
 
 	// +==============================+
 	// |         Init Values          |
@@ -295,14 +361,27 @@ int mapRange(int numIn, int minIn, int maxIn, int minOut, int maxOut)
     return (int)((((float)(numIn - minIn) / (maxIn - minIn)) * (maxOut - minOut)) + minOut);
 }
 
+uint AverageAdc(int AdcIn, uint *buffer, int len)
+{
+	int bIndex = 0;
+	uint32_t average = 0;
+
+	for(bIndex = (len-1); bIndex > 0; bIndex--)
+	{
+		buffer[bIndex] = buffer[bIndex-1];
+		average += buffer[bIndex];
+	}
+	buffer[0] = AdcIn;
+	average += AdcIn;
+	return (uint)(average/len);
+}
 
 void loop()
 {
-
-	int throttlePosition = analogRead(PIN_THT); // NOTE: 10 bit ADC (0-1023)
-	int steeringPosition = analogRead(PIN_STR); // NOTE: 10 bit ADC (0-1023)
-	int throttleTrimPosition = analogRead(PIN_THT_TRM); // NOTE: 10 bit ADC (0-1023)
-	int steeringTrimPosition = analogRead(PIN_STR_TRM); // NOTE: 10 bit ADC (0-1023)
+	int throttlePosition = AverageAdc(analogRead(PIN_THT), AdcBufferSteering, ADC_FILT_LEN); // NOTE: 12 bit ADC (0-4095)
+	int steeringPosition = AverageAdc(analogRead(PIN_STR), AdcBufferThrottle, ADC_FILT_LEN); // NOTE: 12 bit ADC (0-4095)
+	int throttleTrimPosition = AverageAdc(analogRead(PIN_THT_TRM), AdcBufferSteeringTrim, ADC_FILT_LEN); // NOTE: 12 bit ADC (0-4095)
+	int steeringTrimPosition = AverageAdc(analogRead(PIN_STR_TRM), AdcBufferThrottleTrim, ADC_FILT_LEN); // NOTE: 12 bit ADC (0-4095)
 
 	if(ThrottleMin > throttlePosition) { ThrottleMin = throttlePosition; }
 	if(ThrottleMax < throttlePosition) { ThrottleMax = throttlePosition; }
@@ -313,13 +392,11 @@ void loop()
 	if(SteeringTrimMin > steeringTrimPosition) { SteeringTrimMin = steeringTrimPosition; }
 	if(SteeringTrimMax < steeringTrimPosition) { SteeringTrimMax = steeringTrimPosition; }
 
-
 	// +==============================+
 	// |      Analog Adjustments      |
 	// +==============================+
 	int adjustedThrottle = mapRange(throttlePosition, ThrottleMin, ThrottleMax, 0, ADC_MAX);
 	int adjustedSteering = mapRange(steeringPosition, SteeringMin, SteeringMax, 0, ADC_MAX);
-
 
 	// +==============================+
 	// |        Throttle Trim         |
@@ -365,11 +442,13 @@ void loop()
 	}
 	else
 	{
+		#if 0 // LEDs based off Trim
 		analogWrite(PIN_LED_RED,   mapRange(adjustedThrottleTrim, 0, ADC_MAX, PWM_LED_MIN, PWM_LED_MAX));
 		analogWrite(PIN_LED_GREEN, mapRange(adjustedSteeringTrim, 0, ADC_MAX, PWM_LED_MIN, PWM_LED_MAX));
-
-		// analogWrite(PIN_LED_RED,   mapRange(adjustedThrottle, 0, ADC_MAX, PWM_LED_MIN, PWM_LED_MAX));
-		// analogWrite(PIN_LED_GREEN, mapRange(adjustedSteering, 0, ADC_MAX, PWM_LED_MIN, PWM_LED_MAX));
+		#else // LEDs based off throttle/stering
+		analogWrite(PIN_LED_RED,   mapRange(adjustedThrottle, 0, ADC_MAX, PWM_LED_MIN, PWM_LED_MAX));
+		analogWrite(PIN_LED_GREEN, mapRange(adjustedSteering, 0, ADC_MAX, PWM_LED_MIN, PWM_LED_MAX));
+		#endif
 	}
 
 	// +--------------------------------------------------------------+
@@ -446,17 +525,40 @@ void loop()
     {
 
         // Serial.println("Press buttons 5, 16 and start. Move all enabled axes to max. Set DPAD (hat 1) to down right.");
-        if     (!bleGamepad.isPressed(BUTTON_1) && !digitalRead(PIN_THMB_BTN)){ bleGamepad.press(BUTTON_1); }
-        else if( bleGamepad.isPressed(BUTTON_1) &&  digitalRead(PIN_THMB_BTN)){ bleGamepad.release(BUTTON_1); }
-        if     (!bleGamepad.isPressed(BUTTON_2) && !digitalRead(PIN_SET_BTN)){ bleGamepad.press(BUTTON_2); }
-        else if( bleGamepad.isPressed(BUTTON_2) &&  digitalRead(PIN_SET_BTN)){ bleGamepad.release(BUTTON_2); }
-        if     (!bleGamepad.isPressed(BUTTON_3) && !digitalRead(PIN_MENU_BTN)){ bleGamepad.press(BUTTON_3); }
-        else if( bleGamepad.isPressed(BUTTON_3) &&  digitalRead(PIN_MENU_BTN)){ bleGamepad.release(BUTTON_3); }
+        if     (!bleGamepad.isPressed(XIN_THMB_BTN) && !digitalRead(PIN_THMB_BTN)){ bleGamepad.press  (XIN_THMB_BTN); }
+        else if( bleGamepad.isPressed(XIN_THMB_BTN) &&  digitalRead(PIN_THMB_BTN)){ bleGamepad.release(XIN_THMB_BTN); }
+        if     (!bleGamepad.isPressed(XIN_SET_BTN)  && !digitalRead(PIN_SET_BTN)) { bleGamepad.press  (XIN_SET_BTN);  }
+        else if( bleGamepad.isPressed(XIN_SET_BTN)  &&  digitalRead(PIN_SET_BTN)) { bleGamepad.release(XIN_SET_BTN);  }
+        if     (!bleGamepad.isPressed(XIN_MENU_BTN) && !digitalRead(PIN_MENU_BTN)){ bleGamepad.press  (XIN_MENU_BTN); }
+        else if( bleGamepad.isPressed(XIN_MENU_BTN) &&  digitalRead(PIN_MENU_BTN)){ bleGamepad.release(XIN_MENU_BTN); }
+        // if     (!bleGamepad.isPressed(XIN_TOP_BTN)  && !digitalRead(PIN_TOP_BTN)) { bleGamepad.press  (XIN_TOP_BTN);  }
+        // else if( bleGamepad.isPressed(XIN_TOP_BTN)  &&  digitalRead(PIN_TOP_BTN)) { bleGamepad.release(XIN_TOP_BTN);  }
+        // if     (!bleGamepad.isPressed(XIN_MID_BTN)  && !digitalRead(PIN_MID_BTN)) { bleGamepad.press  (XIN_MID_BTN);  }
+        // else if( bleGamepad.isPressed(XIN_MID_BTN)  &&  digitalRead(PIN_MID_BTN)) { bleGamepad.release(XIN_MID_BTN);  }
+        // if     (!bleGamepad.isPressed(XIN_BTM_BTN)  && !digitalRead(PIN_BTM_BTN)) { bleGamepad.press  (XIN_BTM_BTN);  }
+        // else if( bleGamepad.isPressed(XIN_BTM_BTN)  &&  digitalRead(PIN_BTM_BTN)) { bleGamepad.release(XIN_BTM_BTN);  }
 
-        bleGamepad.setAxes(axesCenter, axesCenter, 0, rightXAxis, rightYAxis, 0);       //(X, Y, Z, RX, RY, RZ)
+		#if 0
+        bleGamepad.setAxes(AXIS_CENTER, AXIS_CENTER, 0, rightXAxis, rightYAxis, 0);       //(X, Y, Z, RX, RY, RZ)
+        #else
+        bleGamepad.setX(mapRange(trimmedSteering, 0, ADC_MAX, AXIS_MIN, AXIS_MAX));
+	    bleGamepad.setY(mapRange(trimmedThrottle, 0, ADC_MAX, AXIS_MIN, AXIS_MAX));
+	    bleGamepad.setRX(mapRange(adjustedSteeringTrim, 0, ADC_MAX, AXIS_MIN, AXIS_MAX));
+	    bleGamepad.setRY(mapRange(adjustedThrottleTrim, 0, ADC_MAX, AXIS_MIN, AXIS_MAX));
+        #endif
         // bleGamepad.setAxes(leftXAxis, leftYAxis, 0, rightXAxis, rightYAxis, 0);       //(X, Y, Z, RX, RY, RZ)
+		
+		#if SIM_CONTROLS
+		// +==============================+
+		// |         Sim Controls         |
+		// +==============================+
+	    bleGamepad.setSteering(mapRange(trimmedSteering, 0, ADC_MAX, SIM_MIN, SIM_MAX));
+	    bleGamepad.setBrake(mapRange(trimmedThrottle, ADC_HALF, ADC_MAX, SIM_MIN, SIM_MAX)); // TODO: verify this is mapped correctly
+	    bleGamepad.setAccelerator(mapRange(trimmedThrottle, 0, ADC_HALF, SIM_MIN, SIM_MAX)); // TODO: verify this is mapped correctly
+        #endif
+
         bleGamepad.sendReport();
-        // delay(10);
+
         //bleGamepad.setHIDAxes(32767, 32767, 32767, 32767, 32767, 32767, 32767, 32767);  //(X, Y, Z, RZ, RX, RY)
         // bleGamepad.setHat1(HAT_CENTERED);
         // All axes, sliders, hats etc can also be set independently. See the IndividualAxes.ino example
