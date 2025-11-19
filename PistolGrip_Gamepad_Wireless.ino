@@ -8,8 +8,9 @@ Date: 10/03/2025
 */
 
 // #include <XInput.h>
-#include <Arduino.h>
+// #include <Arduino.h>
 #include <BleGamepad.h>
+#include <Joystick_ESP32S2.h>
 
 #define VERSION_MAJOR 3
 
@@ -166,18 +167,33 @@ Date: 10/03/2025
 // +==============================+
 // |            PINOUT            |
 // +==============================+
-#define PIN_STR_TRM   (3)  // GPIO3  // ADC1_3
-#define PIN_THT_TRM   (2)  // GPIO2  // ADC1_2
-#define PIN_STR       (1)  // GPIO1  // ADC1_1
-#define PIN_THT       (0)  // GPIO0  // ADC1_0
-#define PIN_THMB_BTN  (4)  // GPIO4  // (2) // D2
-#define PIN_MENU_BTN  (5)  // GPIO5  // (3) // D3
-#define PIN_SET_BTN   (6)  // GPIO6  // (4) // D4
-#define PIN_LED_RED   (7)  // GPIO7  // (5) // D5 NOTE: PWM!
-#define PIN_LED_GREEN (10) // GPIO10 // (6) // D6 NOTE: PWM!
-#define PIN_TOP_BTN   (19) // GPIO19 // (7) // D7 NOTE: USB Uses this?
-#define PIN_MID_BTN   (20) // GPIO20 // (8) // D8
-#define PIN_BTM_BTN   (21) // GPIO21 // (9) // D9
+#if 0 // ESP32-C3 prototype
+	#define PIN_STR_TRM   (4)  // GPIO3  // ADC1_3
+	#define PIN_THT_TRM   (5)  // GPIO2  // ADC1_4
+	#define PIN_STR       (6)  // GPIO1  // ADC1_5
+	#define PIN_THT       (7)  // GPIO0  // ADC1_6
+	#define PIN_THMB_BTN  (4)  // GPIO4  // (2) // D2
+	#define PIN_MENU_BTN  (5)  // GPIO5  // (3) // D3
+	#define PIN_SET_BTN   (6)  // GPIO6  // (4) // D4
+	#define PIN_LED_RED   (7)  // GPIO7  // (5) // D5 NOTE: PWM!
+	#define PIN_LED_GREEN (10) // GPIO10 // (6) // D6 NOTE: PWM!
+	#define PIN_TOP_BTN   (19) // GPIO19 // (7) // D7 NOTE: USB Uses this?
+	#define PIN_MID_BTN   (20) // GPIO20 // (8) // D8
+	#define PIN_BTM_BTN   (21) // GPIO21 // (9) // D9
+#else
+	#define PIN_STR_TRM   (4)  // GPIO4  // ADC1_3
+	#define PIN_THT_TRM   (5)  // GPIO5  // ADC1_4
+	#define PIN_STR       (6)  // GPIO6  // ADC1_5
+	#define PIN_THT       (7)  // GPIO7  // ADC1_6
+	#define PIN_THMB_BTN  (8)  // GPIO8  // (8)
+	#define PIN_MENU_BTN  (1)  // GPIO1  // (1)
+	#define PIN_SET_BTN   (2)  // GPIO2  // (2)
+	#define PIN_LED_RED   (15) // GPIO15 // (15) NOTE: PWM!
+	#define PIN_LED_GREEN (16) // GPIO16 // (16) NOTE: PWM!
+	#define PIN_TOP_BTN   (9)  // GPIO9 // (7)
+	#define PIN_MID_BTN   (10) // GPIO10 // (8)
+	#define PIN_BTM_BTN   (11) // GPIO11 // (9)
+#endif
 
 // +==============================+
 // |        Button Mapping        |
@@ -192,9 +208,31 @@ Date: 10/03/2025
 // +--------------------------------------------------------------+
 // |                        Controller IDs                        |
 // +--------------------------------------------------------------+
+#define MANF_NAME "ReadySetProjects"
+// #define PROD_NAME "RSP Controller"
+
+// #define PROD_NAME "RSP Controller TEST-C3" 0x1234 // Test ESP32-C3
+// #define PROD_NAME "RSP Controller A0148840" // 0x8840 First ESP32-S3 controller
+// #define PROD_NAME "RSP Controller A0392285" // 0x2285 Has throttle adjuster thing
+// #define PROD_NAME "RSP Controller A0381549" // 0x1549
+// #define PROD_NAME "RSP Controller A0381459" // 0x1459
+// #define PROD_NAME "RSP Controller A0359313" // 0x9313
+// #define PROD_NAME "RSP Controller A0359295" // 0x9295
+// #define PROD_NAME "RSP Controller A0306966" // 0x6966
+// #define PROD_NAME "RSP Controller A0306712" // 0x6712
+// #define PROD_NAME "RSP Controller A0148987" // 0x8987 Currently an Arduino controller
+// #define PROD_NAME "RSP Controller A0148750" // 0x8750
+#define PROD_NAME "RSP Controller A0329340" // 0x9340 // actual first S3 Controller
+// #define PROD_NAME "RSP Controller A0" 48840
+// #define PROD_NAME "RSP Controller A0" 48840
+// #define PROD_NAME "RSP Controller A0" 48840
+// #define PROD_NAME "RSP Controller A0" 48840
+// #define PROD_NAME "RSP Controller A0" 48840
+
+
 #define VENDOR_ID 0xC01B // Colby!
 
-#define CONTROLLER_ID 0x1234 // Test ESP32-C3
+// #define CONTROLLER_ID 0x1234 // Test ESP32-C3
 // #define CONTROLLER_ID 0x8840 // A0148840 First ESP32-S3 controller
 // #define CONTROLLER_ID 0x2285 // A0392285 Has throttle adjuster thing
 // #define CONTROLLER_ID 0x1549 // A0381549
@@ -205,7 +243,7 @@ Date: 10/03/2025
 // #define CONTROLLER_ID 0x6712 // A0306712
 // #define CONTROLLER_ID 0x8987 // A0148987 Currently an Arduino controller
 // #define CONTROLLER_ID 0x8750 // A0148750
-// #define CONTROLLER_ID 48840
+#define CONTROLLER_ID 0x9340 // A0329340 // actual first S3 Controller
 // #define CONTROLLER_ID 48840
 // #define CONTROLLER_ID 48840
 // #define CONTROLLER_ID 48840
@@ -251,7 +289,13 @@ Date: 10/03/2025
 // |                           Globals                            |
 // +--------------------------------------------------------------+
 
-BleGamepad bleGamepad("RSP Controller", "ReadySetProjects", 100);
+BleGamepad bleGamepad(PROD_NAME, MANF_NAME, 100);
+Joystick_  usbGamepad(JOYSTICK_DEFAULT_REPORT_ID,JOYSTICK_TYPE_GAMEPAD,
+					  NUM_BUTTONS, NUM_HAT_SWITCHES,                      // Button Count, Hat Switch Count
+					  ENABLE_X, ENABLE_Y, ENABLE_Z,                       // X and Y, but no Z Axis
+					  ENABLE_RX, ENABLE_RY, ENABLE_RZ,                    // Rx and Ry, but no Rz Axis
+					  ENABLE_RUDDER, ENABLE_THROTTLE,                     // No rudder or throttle
+					  ENABLE_ACCELERATOR, ENABLE_BRAKE, ENABLE_STEERING); // No accelerator, brake, or steering
 
 int ThrottleMin = STARTING_LIMITS;
 int ThrottleMax = ADC_MAX - STARTING_LIMITS;
@@ -286,6 +330,7 @@ void setup()
 	// // put your setup code here, to run once:
 	// XInput.setAutoSend(false);
 	// XInput.begin();
+
 
 	// +==============================+
 	// |            Micro             |
@@ -338,6 +383,21 @@ void setup()
     bleGamepad.setBrake(SIM_MIN);
     bleGamepad.setAccelerator(SIM_MIN);
     #endif
+
+	// +==============================+
+	// |          usbGamepad          |
+	// +==============================+
+	USB.PID(CONTROLLER_ID);
+	USB.VID(VENDOR_ID);
+	USB.productName(PROD_NAME);
+	USB.manufacturerName(MANF_NAME);
+	USB.begin();
+
+	usbGamepad.setXAxisRange(AXIS_MIN, AXIS_MAX);
+	usbGamepad.setYAxisRange(AXIS_MIN, AXIS_MAX);
+	usbGamepad.setRxAxisRange(AXIS_MIN, AXIS_MAX);
+	usbGamepad.setRyAxisRange(AXIS_MIN, AXIS_MAX);
+	usbGamepad.begin(false);
 
 	// +==============================+
 	// |         Init Values          |
@@ -558,18 +618,39 @@ void loop()
         #endif
 
         bleGamepad.sendReport();
+    }
+    else
+    {
+    	// +--------------------------------------------------------------+
+    	// |                         USB Gamepad                          |
+    	// +--------------------------------------------------------------+
 
-        //bleGamepad.setHIDAxes(32767, 32767, 32767, 32767, 32767, 32767, 32767, 32767);  //(X, Y, Z, RZ, RX, RY)
-        // bleGamepad.setHat1(HAT_CENTERED);
-        // All axes, sliders, hats etc can also be set independently. See the IndividualAxes.ino example
-        // delay(1000);
+		#if 0 // FINISHED CONTROLLER
+		// Left Button - 1
+		usbGamepad.setButton(REVOLT_ACCEPT_ITEM, !digitalRead(PIN_THMB_BTN));
+		// Left Button - 1
+		usbGamepad.setButton(REVOLT_FLIP_CAR, !digitalRead(PIN_BTM_BTN));
+		// Back Button - 2
+		usbGamepad.setButton(REVOLT_RESET_CAR, !digitalRead(PIN_SET_BTN));
+		// Back Button - 2
+		usbGamepad.setButton(REVOLT_BACK_PAUSE, !digitalRead(PIN_MENU_BTN));
+		// Back Button - 2
+		usbGamepad.setButton(REVOLT_LOOK_BACK, !digitalRead(PIN_TOP_BTN));
+		// Back Button - 2
+		usbGamepad.setButton(REVOLT_HORN, !digitalRead(PIN_MID_BTN));
+		#else // NO Nose buttons CONTROLLER
+		// Left Button - 1
+		usbGamepad.setButton(REVOLT_ACCEPT_ITEM, !digitalRead(PIN_THMB_BTN));
+		// Left Button - 1
+		usbGamepad.setButton(REVOLT_FLIP_CAR, !digitalRead(PIN_SET_BTN));
+		// Back Button - 2
+		usbGamepad.setButton(REVOLT_BACK_PAUSE, !digitalRead(PIN_MENU_BTN));
+		#endif
 
-        // // Serial.println("Release button 5 and start. Move all axes to min. Set DPAD (hat 1) to centred.");
-        // bleGamepad.release(BUTTON_5);
-        // bleGamepad.releaseStart();
-        // bleGamepad.setHat1(HAT_CENTERED);
-        // bleGamepad.setAxes(0, 0, 0, 0, 0, 0, 0, 0);           //(X, Y, Z, RX, RY, RZ)
-        // //bleGamepad.setHIDAxes(0, 0, 0, 0, 0, 0, 0, 0);      //(X, Y, Z, RZ, RX, RY)
-        // delay(1000);
+		usbGamepad.setXAxis(leftXAxis);
+		usbGamepad.setYAxis(leftYAxis);
+		usbGamepad.setRxAxis(rightXAxis);
+		usbGamepad.setRyAxis(rightYAxis);
+		usbGamepad.sendState();
     }
 }
