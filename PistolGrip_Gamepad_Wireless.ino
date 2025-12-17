@@ -180,19 +180,20 @@ Date: 10/03/2025
 	#define PIN_TOP_BTN   (19) // GPIO19 // (7) // D7 NOTE: USB Uses this?
 	#define PIN_MID_BTN   (20) // GPIO20 // (8) // D8
 	#define PIN_BTM_BTN   (21) // GPIO21 // (9) // D9
-#else
+#else // ESP32-S3
 	#define PIN_STR_TRM   (4)  // GPIO4  // ADC1_3
 	#define PIN_THT_TRM   (5)  // GPIO5  // ADC1_4
 	#define PIN_STR       (6)  // GPIO6  // ADC1_5
 	#define PIN_THT       (7)  // GPIO7  // ADC1_6
-	#define PIN_THMB_BTN  (8)  // GPIO8  // (8)
-	#define PIN_MENU_BTN  (1)  // GPIO1  // (1)
-	#define PIN_SET_BTN   (2)  // GPIO2  // (2)
-	#define PIN_LED_RED   (15) // GPIO15 // (15) NOTE: PWM!
-	#define PIN_LED_GREEN (16) // GPIO16 // (16) NOTE: PWM!
-	#define PIN_TOP_BTN   (9)  // GPIO9 // (7)
-	#define PIN_MID_BTN   (10) // GPIO10 // (8)
-	#define PIN_BTM_BTN   (11) // GPIO11 // (9)
+	#define PIN_THMB_BTN  (38) // GPI38  // (38)
+	#define PIN_MENU_BTN  (2)  // GPIO2  // (0)
+	#define PIN_SET_BTN   (1)  // GPIO1  // (1)
+	#define PIN_LED_RED   (42) // GPIO42 // (42) NOTE: PWM!
+	#define PIN_LED_GREEN (41) // GPIO41 // (41) NOTE: PWM!
+	#define PIN_TOP_BTN   (16) // GPIO16 // (16)
+	#define PIN_MID_BTN   (17) // GPIO17 // (17)
+	#define PIN_BTM_BTN   (18) // GPIO18 // (18)
+	#define PIN_VIBRATOR  (39) // GPIO39 // (39)
 #endif
 
 // +==============================+
@@ -221,8 +222,8 @@ Date: 10/03/2025
 // #define PROD_NAME "RSP Controller A0306966" // 0x6966
 // #define PROD_NAME "RSP Controller A0306712" // 0x6712
 // #define PROD_NAME "RSP Controller A0148987" // 0x8987 Currently an Arduino controller
-// #define PROD_NAME "RSP Controller A0148750" // 0x8750
-#define PROD_NAME "RSP Controller A0329340" // 0x9340 // actual first S3 Controller
+#define PROD_NAME "RSP Controller A0148750" // 0x8750 // First PCB S3 controller
+// #define PROD_NAME "RSP Controller A0329340" // 0x9340 // actual first S3 Controller
 // #define PROD_NAME "RSP Controller A0" 48840
 // #define PROD_NAME "RSP Controller A0" 48840
 // #define PROD_NAME "RSP Controller A0" 48840
@@ -242,8 +243,8 @@ Date: 10/03/2025
 // #define CONTROLLER_ID 0x6966 // A0306966
 // #define CONTROLLER_ID 0x6712 // A0306712
 // #define CONTROLLER_ID 0x8987 // A0148987 Currently an Arduino controller
-// #define CONTROLLER_ID 0x8750 // A0148750
-#define CONTROLLER_ID 0x9340 // A0329340 // actual first S3 Controller
+#define CONTROLLER_ID 0x8750 // A0148750 // First PCB S3 controller
+// #define CONTROLLER_ID 0x9340 // A0329340 // actual first S3 Controller
 // #define CONTROLLER_ID 48840
 // #define CONTROLLER_ID 48840
 // #define CONTROLLER_ID 48840
@@ -264,6 +265,8 @@ Date: 10/03/2025
 #define PWM_LED_MAX 255
 #define PWM_LED_MIN 0 // LEDs don't turn on till this?
 #define PWM_CONV_MULTI (PWM_LED_MAX - PWM_LED_MIN) // Conversion multiplier from ADC to XINPUT resolutions
+
+#define VIB_DURATION 500 // ms
 
 #define TRIM_PERCENT 0.30 //% amount of range trim can adjust center point
 #define TRIM_MIN 10 // trim pots get crazy around the edges
@@ -296,6 +299,9 @@ Joystick_  usbGamepad(JOYSTICK_DEFAULT_REPORT_ID,JOYSTICK_TYPE_GAMEPAD,
 					  ENABLE_RX, ENABLE_RY, ENABLE_RZ,                    // Rx and Ry, but no Rz Axis
 					  ENABLE_RUDDER, ENABLE_THROTTLE,                     // No rudder or throttle
 					  ENABLE_ACCELERATOR, ENABLE_BRAKE, ENABLE_STEERING); // No accelerator, brake, or steering
+hw_timer_t *Timer0_Cfg = NULL;
+
+int VibCountdown = 0;
 
 int ThrottleMin = STARTING_LIMITS;
 int ThrottleMax = ADC_MAX - STARTING_LIMITS;
@@ -322,8 +328,28 @@ uint AdcBufferSteering[ADC_FILT_LEN] = {0};
 uint AdcBufferSteeringTrim[ADC_FILT_LEN] = {0};
 uint AdcBufferThrottleTrim[ADC_FILT_LEN] = {0};
 
+// +--------------------------------------------------------------+
+// |                         Timer 0 ISR                          |
+// +--------------------------------------------------------------+
+void IRAM_ATTR Timer0_ISR()
+{
+	if(VibCountdown > 0) { VibCountdown --; }
+}
+
+// +--------------------------------------------------------------+
+// |                             Init                             |
+// +--------------------------------------------------------------+
 void setup()
 {
+
+	// +==============================+
+	// |            Timers            |
+	// +==============================+
+	Timer0_Cfg = timerBegin(10000); // 10KHz
+    timerAttachInterrupt(Timer0_Cfg, &Timer0_ISR);
+    timerAlarm(Timer0_Cfg, 10, true, 0); // fire ISR every 1ms (or every 10 timer ticks), repeat, unlimited times
+    // timerStart(Timer0_Cfg);
+
 	// +==============================+
 	// |            XInput            |
 	// +==============================+
@@ -344,9 +370,12 @@ void setup()
 	pinMode(PIN_SET_BTN,   INPUT_PULLUP);
 	pinMode(PIN_LED_RED,   OUTPUT);
 	pinMode(PIN_LED_GREEN, OUTPUT);
-	// pinMode(PIN_TOP_BTN,   INPUT_PULLUP);
+	pinMode(PIN_TOP_BTN,   INPUT_PULLUP);
 	pinMode(PIN_MID_BTN,   INPUT_PULLUP);
 	pinMode(PIN_BTM_BTN,   INPUT_PULLUP);
+	pinMode(PIN_VIBRATOR,  OUTPUT);
+
+	digitalWrite(PIN_VIBRATOR, HIGH); // turn off vibrator
 
 	// +==============================+
 	// |            Serial            |
@@ -511,6 +540,22 @@ void loop()
 		#endif
 	}
 
+	// +==============================+
+	// |           Vibrator           |
+	// +==============================+
+	if(digitalRead(PIN_MENU_BTN) && VibCountdown == 0)
+	{
+		VibCountdown = VIB_DURATION;
+	}
+
+	if(digitalRead(PIN_VIBRATOR) && VibCountdown != 0)
+	{
+		digitalWrite(PIN_VIBRATOR, LOW); // turn on vibrator
+	}
+	else if(!digitalRead(PIN_VIBRATOR) && VibCountdown == 0)
+	{
+		digitalWrite(PIN_VIBRATOR, HIGH); // turn off vibrator
+	}
 	// +--------------------------------------------------------------+
 	// |                            XInput                            |
 	// +--------------------------------------------------------------+
