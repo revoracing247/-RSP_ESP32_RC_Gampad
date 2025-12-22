@@ -222,13 +222,13 @@ Date: 10/03/2025
 // #define PROD_NAME "RSP Controller A0306966" // 0x6966
 // #define PROD_NAME "RSP Controller A0306712" // 0x6712
 // #define PROD_NAME "RSP Controller A0148987" // 0x8987 Currently an Arduino controller
-#define PROD_NAME "RSP Controller A0148750" // 0x8750 // First PCB S3 controller
+// #define PROD_NAME "RSP Controller A0148750" // 0x8750 // messed up POT
 // #define PROD_NAME "RSP Controller A0329340" // 0x9340 // actual first S3 Controller
-// #define PROD_NAME "RSP Controller A0" 48840
-// #define PROD_NAME "RSP Controller A0" 48840
-// #define PROD_NAME "RSP Controller A0" 48840
-// #define PROD_NAME "RSP Controller A0" 48840
-// #define PROD_NAME "RSP Controller A0" 48840
+#define PROD_NAME "RSP Controller A0148860" // 0x8860 // First PCB S3 controller
+// #define PROD_NAME "RSP Controller A0350786" 48840
+// #define PROD_NAME "RSP Controller A0243249" 48840
+// #define PROD_NAME "RSP Controller A0337517" 48840
+// #define PROD_NAME "RSP Controller A0337117" 48840
 
 
 #define VENDOR_ID 0xC01B // Colby!
@@ -243,13 +243,13 @@ Date: 10/03/2025
 // #define CONTROLLER_ID 0x6966 // A0306966
 // #define CONTROLLER_ID 0x6712 // A0306712
 // #define CONTROLLER_ID 0x8987 // A0148987 Currently an Arduino controller
-#define CONTROLLER_ID 0x8750 // A0148750 // First PCB S3 controller
+// #define CONTROLLER_ID 0x8750 // A0148750 // Messed Up POT
 // #define CONTROLLER_ID 0x9340 // A0329340 // actual first S3 Controller
-// #define CONTROLLER_ID 48840
-// #define CONTROLLER_ID 48840
-// #define CONTROLLER_ID 48840
-// #define CONTROLLER_ID 48840
-// #define CONTROLLER_ID 48840
+#define CONTROLLER_ID 0x8860 // A0148860 // First PCA S3 Controller
+// #define CONTROLLER_ID 0x0786
+// #define CONTROLLER_ID 0x3249
+// #define CONTROLLER_ID 0x7517
+// #define CONTROLLER_ID 0x7117
 
 // +--------------------------------------------------------------+
 // |                          Constants                           |
@@ -266,7 +266,7 @@ Date: 10/03/2025
 #define PWM_LED_MIN 0 // LEDs don't turn on till this?
 #define PWM_CONV_MULTI (PWM_LED_MAX - PWM_LED_MIN) // Conversion multiplier from ADC to XINPUT resolutions
 
-#define VIB_DURATION 500 // ms
+#define VIB_DURATION 100 // ms
 
 #define TRIM_PERCENT 0.30 //% amount of range trim can adjust center point
 #define TRIM_MIN 10 // trim pots get crazy around the edges
@@ -302,6 +302,7 @@ Joystick_  usbGamepad(JOYSTICK_DEFAULT_REPORT_ID,JOYSTICK_TYPE_GAMEPAD,
 hw_timer_t *Timer0_Cfg = NULL;
 
 int VibCountdown = 0;
+bool VibActivated = false;
 
 int ThrottleMin = STARTING_LIMITS;
 int ThrottleMax = ADC_MAX - STARTING_LIMITS;
@@ -543,19 +544,21 @@ void loop()
 	// +==============================+
 	// |           Vibrator           |
 	// +==============================+
-	if(digitalRead(PIN_MENU_BTN) && VibCountdown == 0)
+	if(!digitalRead(PIN_THMB_BTN) && VibCountdown == 0 && !VibActivated)
 	{
 		VibCountdown = VIB_DURATION;
+		digitalWrite(PIN_VIBRATOR, HIGH); // turn on vibrator
+		VibActivated = true;
+	}
+	else if(digitalRead(PIN_THMB_BTN) && VibCountdown == 0 && VibActivated)
+	{
+		VibActivated = false;
+	}
+	else if(digitalRead(PIN_VIBRATOR) && VibCountdown == 0)
+	{
+		digitalWrite(PIN_VIBRATOR, LOW); // turn off vibrator
 	}
 
-	if(digitalRead(PIN_VIBRATOR) && VibCountdown != 0)
-	{
-		digitalWrite(PIN_VIBRATOR, LOW); // turn on vibrator
-	}
-	else if(!digitalRead(PIN_VIBRATOR) && VibCountdown == 0)
-	{
-		digitalWrite(PIN_VIBRATOR, HIGH); // turn off vibrator
-	}
 	// +--------------------------------------------------------------+
 	// |                            XInput                            |
 	// +--------------------------------------------------------------+
