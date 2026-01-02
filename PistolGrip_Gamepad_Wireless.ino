@@ -7,8 +7,6 @@ Date: 10/03/2025
 	V1: designed and working for my old traxxas controller (the grey ones)
 */
 
-// #include <XInput.h>
-// #include <Arduino.h>
 #include <BleGamepad.h>
 #include <Joystick_ESP32S2.h>
 
@@ -41,44 +39,6 @@ Date: 10/03/2025
 	P1_7 - R1_Center  - MULTI_TRIM
 	P1_8 - VDD        - 3.3V
     & Bottom &
-*/
-
-// +==============================+
-// |     Arduino Connections      |
-// +==============================+
-/*
-	Conn Color    Name        Arduino  PIN#
-	00 - N/A    - Ground       - GND  - NA  - NA
-	01 - N/A    - +5V          - VDD  - NA  - NA
-	02 - Green  - Throttle     - A0   - 18  - REVOLT_STEER
-	03 - White  - Steering     - A1   - 19  - 
-	04 - N/A    - Throttle-Trm - A2   - 20  - REVOLT_FWDREV
-	05 - N/A    - Steering-Trm - A3   - 21  -
-	
-	06 - Red    - Thumb_Btn   - D2   - 02  - REVOLT_ACCEPT_ITEM
-	07 - N/A    - Set_Btn     - D3   - 03  - REVOLT_BACK_PAUSE
-	08 - N/A    - Menu_Btn    - D4   - 04  - REVOLT_RESET_CAR
-	09 - N/A    - LED_RED     - D5   - 05  - PWM_OUT
-	10 - N/A    - LED_GREEN   - D6   - 06  - PWM_OUT
-	09 - Yellow - Top_Btn     - D7   - 07  - REVOLT_FLIP_CAR
-	10 - Purple - Middle_Btn  - D8   - 08  - REVOLT_HORN
-	11 - Brown  - Bottom_Btn  - D9   - 09  - REVOLT_LOOK_BACK
-*/
-
-// +==============================+
-// |       OLD Wire colors        |
-// +==============================+
-/*
-	Conn Color    Name       Arduino  PIN#
-	0 - Black  - Ground      - GND  - 
-	1 - Brown  - +5V         - 3.3V - 
-	2 - White  - Steer       - A0   - 17
-	3 - Orange - Steer-Trm   - A1   - 16
-	4 - Green  - Throttle    - A2   - 15
-	5 - Blue   - Thottle-Trm - A3   - 14
-	6 - Purple - Switch-NO   - D2   - 02
-	7 - Yellow - Switch_NC   - D3   - 03
-	8 - Red    - Pwr_Swtch   - D4   - 04
 */
 
 // +==============================+
