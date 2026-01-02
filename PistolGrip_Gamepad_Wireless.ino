@@ -209,26 +209,27 @@ Date: 10/03/2025
 // +--------------------------------------------------------------+
 // |                        Controller IDs                        |
 // +--------------------------------------------------------------+
-#define MANF_NAME "ReadySetProjects"
+#define MANF_NAME "RSP"
+// #define MANF_NAME "ReadySetProjects"
 // #define PROD_NAME "RSP Controller"
 
-// #define PROD_NAME "RSP Controller TEST-C3" 0x1234 // Test ESP32-C3
-// #define PROD_NAME "RSP Controller A0148840" // 0x8840 First ESP32-S3 controller
-// #define PROD_NAME "RSP Controller A0392285" // 0x2285 Has throttle adjuster thing
-// #define PROD_NAME "RSP Controller A0381549" // 0x1549
-// #define PROD_NAME "RSP Controller A0381459" // 0x1459
-// #define PROD_NAME "RSP Controller A0359313" // 0x9313
-// #define PROD_NAME "RSP Controller A0359295" // 0x9295
-// #define PROD_NAME "RSP Controller A0306966" // 0x6966
-// #define PROD_NAME "RSP Controller A0306712" // 0x6712
-// #define PROD_NAME "RSP Controller A0148987" // 0x8987 Currently an Arduino controller
-// #define PROD_NAME "RSP Controller A0148750" // 0x8750 // messed up POT
-// #define PROD_NAME "RSP Controller A0329340" // 0x9340 // actual first S3 Controller
-#define PROD_NAME "RSP Controller A0148860" // 0x8860 // First PCB S3 controller
-// #define PROD_NAME "RSP Controller A0350786" 48840
-// #define PROD_NAME "RSP Controller A0243249" 48840
-// #define PROD_NAME "RSP Controller A0337517" 48840
-// #define PROD_NAME "RSP Controller A0337117" 48840
+// #define PROD_NAME "TEST-C3 RC-Gamepad" 0x1234 // Test ESP32-C3
+// #define PROD_NAME "A0148840 RC-Gamepad" // 0x8840 First ESP32-S3 controller
+// #define PROD_NAME "A0392285 RC-Gamepad" // 0x2285 Has throttle adjuster thing
+// #define PROD_NAME "A0381549 RC-Gamepad" // 0x1549
+// #define PROD_NAME "A0381459 RC-Gamepad" // 0x1459
+// #define PROD_NAME "A0359313 RC-Gamepad" // 0x9313
+// #define PROD_NAME "A0359295 RC-Gamepad" // 0x9295
+// #define PROD_NAME "A0306966 RC-Gamepad" // 0x6966
+// #define PROD_NAME "A0306712 RC-Gamepad" // 0x6712
+// #define PROD_NAME "A0148987 RC-Gamepad" // 0x8987 Currently an Arduino controller
+// #define PROD_NAME "A0148750 RC-Gamepad" // 0x8750 // messed up POT
+// #define PROD_NAME "A0329340 RC-Gamepad" // 0x9340 // actual first S3 Controller
+#define PROD_NAME "A0148860 RC-Gamepad" // 0x8860 // First PCB S3 controller
+// #define PROD_NAME "A0350786 RC_Gamepad" // 0x0786
+// #define PROD_NAME "A0243249 RC_Gamepad" // 0x3249
+// #define PROD_NAME "A0337517 RC_Gamepad" // 0x7517
+// #define PROD_NAME "A0337117 RC_Gamepad" // 0x7117
 
 
 #define VENDOR_ID 0xC01B // Colby!
@@ -246,10 +247,10 @@ Date: 10/03/2025
 // #define CONTROLLER_ID 0x8750 // A0148750 // Messed Up POT
 // #define CONTROLLER_ID 0x9340 // A0329340 // actual first S3 Controller
 #define CONTROLLER_ID 0x8860 // A0148860 // First PCA S3 Controller
-// #define CONTROLLER_ID 0x0786
-// #define CONTROLLER_ID 0x3249
-// #define CONTROLLER_ID 0x7517
-// #define CONTROLLER_ID 0x7117
+// #define CONTROLLER_ID 0x0786 // A0350786
+// #define CONTROLLER_ID 0x3249 // A0243249
+// #define CONTROLLER_ID 0x7517 // A0337517
+// #define CONTROLLER_ID 0x7117 // A0337117
 
 // +--------------------------------------------------------------+
 // |                          Constants                           |
