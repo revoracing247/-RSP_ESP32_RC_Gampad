@@ -139,14 +139,14 @@ Notes for revisions
 #define BLE_REVOLT_STEER       JOY_LEFT
 
 // +==============================+
-// |    Re-Volt Android Mapping   |
-// +==============================+ // add android mode?
-#define AND_REVOLT_ACCEPT_ITEM 1
-#define AND_REVOLT_FLIP_CAR    2
-#define AND_REVOLT_RESET_CAR   3
-#define AND_REVOLT_BACK_PAUSE  4
-#define AND_REVOLT_LOOK_BACK   7
-#define AND_REVOLT_HORN        8
+// |    Re-Volt Android Mapping   | // 7 Also back/pause?
+// +==============================+ //0,1,2,3,4,5,6,7,8 aren't the ones we're looking for
+#define AND_REVOLT_ACCEPT_ITEM 1 // Button A
+#define AND_REVOLT_FLIP_CAR    2 // Button B
+#define AND_REVOLT_RESET_CAR   4 // Button X
+#define AND_REVOLT_BACK_PAUSE  5 // Button Y
+#define AND_REVOLT_LOOK_BACK   6
+#define AND_REVOLT_HORN        7
 #define AND_REVOLT_UP          10 // verify
 #define AND_REVOLT_DOWN        11 // verify
 #define AND_REVOLT_LEFT        12 // verify
@@ -238,6 +238,22 @@ Notes for revisions
 // #define BLE_BTM_BTN   BLE_REVOLT_LOOK_BACK
 #endif
 
+#if FINISHED_CONTROLLER
+#define AND_THMB_BTN  AND_REVOLT_ACCEPT_ITEM
+#define AND_MENU_BTN  AND_REVOLT_BACK_PAUSE
+#define AND_SET_BTN   AND_REVOLT_RESET_CAR
+#define AND_TOP_BTN   AND_REVOLT_LOOK_BACK
+#define AND_MID_BTN   AND_REVOLT_HORN
+#define AND_BTM_BTN   AND_REVOLT_FLIP_CAR
+#else // NO Nose buttons CONTROLLER
+#define AND_THMB_BTN  AND_REVOLT_ACCEPT_ITEM
+#define AND_MENU_BTN  AND_REVOLT_BACK_PAUSE
+#define AND_SET_BTN   AND_REVOLT_FLIP_CAR
+// #define AND_TOP_BTN   AND_REVOLT_RESET_CAR
+// #define AND_MID_BTN   AND_REVOLT_HORN
+// #define AND_BTM_BTN   AND_REVOLT_LOOK_BACK
+#endif
+
 
 
 // +--------------------------------------------------------------+
@@ -250,21 +266,21 @@ Notes for revisions
 // #define PROD_NAME  "TEST-C3 RC-Gamepad" 0x1234
 // #define CONTROLLER_ID 0x1234
 
-// // A0148840 First ESP32-S3 controller
+// // A0148840 ****************************** First ESP32-S3 controller
 // #define PROD_NAME  "A0148840 RC-Gamepad"
 // #define CONTROLLER_ID 0x8840
 
-// // A0392285 Has throttle adjuster thing
+// // A0392285 ****************************** Has throttle adjuster thing
 // #define PROD_NAME  "A0392285 RC-Gamepad"
 // #define CONTROLLER_ID 0x2285
 
-// // A0381549
-// #define PROD_NAME  "A0381549 RC-Gamepad"
-// #define CONTROLLER_ID 0x1549
+// A0381549
+#define PROD_NAME  "A0381549 RC-Gamepad"
+#define CONTROLLER_ID 0x1549
 
-// A0381459  First S3 with nose buttons
-#define PROD_NAME  "A0381459 RC-Gamepad"
-#define CONTROLLER_ID 0x1459
+// // A0381459 ****************************** First S3 with nose buttons
+// #define PROD_NAME  "A0381459 RC-Gamepad"
+// #define CONTROLLER_ID 0x1459
 
 // // A0359313
 // #define PROD_NAME  "A0359313 RC-Gamepad"
@@ -282,19 +298,19 @@ Notes for revisions
 // #define PROD_NAME  "A0306712 RC-Gamepad"
 // #define CONTROLLER_ID 0x6712
 
-// // A0148987 Currently an Arduino controller
+// // A0148987 ****************************** Currently an Arduino controller
 // #define PROD_NAME  "A0148987 RC-Gamepad"
 // #define CONTROLLER_ID 0x8987
 
-// // A0148750 messed up POT
+// // A0148750 ****************************** messed up POT
 // #define PROD_NAME  "A0148750 RC-Gamepad"
 // #define CONTROLLER_ID 0x8750
 
-// // A0329340 actual first S3 Controller
+// // A0329340 ****************************** First S3 Controller POC
 // #define PROD_NAME  "A0329340 RC-Gamepad"
 // #define CONTROLLER_ID 0x9340 
 
-// // A0148860 First PCB S3 controller
+// // A0148860 ****************************** First PCB S3 controller
 // #define PROD_NAME  "A0148860 RC-Gamepad"
 // #define CONTROLLER_ID 0x8860
 
@@ -337,7 +353,7 @@ Notes for revisions
 #define PWM_LED_MIN 0 // LEDs don't turn on till this?
 #define PWM_CONV_MULTI (PWM_LED_MAX - PWM_LED_MIN) // Conversion multiplier from ADC to XINPUT resolutions
 
-#define VIB_DURATION 100 // ms
+#define VIB_DURATION 50 // ms
 
 #define TRIM_PERCENT 0.30 //% amount of range trim can adjust center point
 #define TRIM_MIN 10 // trim pots get crazy around the edges
@@ -374,6 +390,8 @@ hw_timer_t *Timer0_Cfg = NULL;
 
 int VibCountdown = 0;
 bool VibActivated = false;
+bool AndroidMode = false;
+bool VibEnabled = false;
 
 int ThrottleMin = STARTING_LIMITS;
 int ThrottleMax = ADC_MAX - STARTING_LIMITS;
@@ -442,6 +460,44 @@ void setup()
 	digitalWrite(PIN_VIBRATOR, HIGH); // turn off vibrator
 
 	// +==============================+
+	// |         Init Values          |
+	// +==============================+
+	LastSteeringTrim = analogRead(PIN_THT_TRM);
+	LastThrottleTrim = analogRead(PIN_STR_TRM);
+	LastSteering     = analogRead(PIN_STR);
+	LastThrottle     = analogRead(PIN_THT);
+	LastThumbBtn     = !digitalRead(PIN_THMB_BTN);
+	LastMenuBtn      = !digitalRead(PIN_MENU_BTN);
+	LastSetBtn       = !digitalRead(PIN_SET_BTN);
+	LastTopBtn       = !digitalRead(PIN_TOP_BTN);
+	LastMidBtn       = !digitalRead(PIN_MID_BTN);
+	LastBtmBtn       = !digitalRead(PIN_BTM_BTN);
+
+	// +==============================+
+	// |         Android Mode         |
+	// +==============================+
+	if(LastMenuBtn)
+	{
+		AndroidMode = true;
+		// // Activate Vibrator to indicate
+		// VibCountdown = VIB_DURATION;
+		// digitalWrite(PIN_VIBRATOR, HIGH); // turn on vibrator
+		// VibActivated = true;
+	}
+
+	// +==============================+
+	// |       Vibrator Enabled       |
+	// +==============================+
+	if(LastSetBtn)
+	{
+		VibEnabled = true;
+		// Activate Vibrator to indicate
+		VibCountdown = VIB_DURATION;
+		digitalWrite(PIN_VIBRATOR, HIGH); // turn on vibrator
+		VibActivated = true;
+	}
+
+	// +==============================+
 	// |            Serial            |
 	// +==============================+
 	// Serial.begin(115200);
@@ -491,20 +547,6 @@ void setup()
 	usbGamepad.setRxAxisRange(AXIS_MIN, AXIS_MAX);
 	usbGamepad.setRyAxisRange(AXIS_MIN, AXIS_MAX);
 	usbGamepad.begin(false);
-
-	// +==============================+
-	// |         Init Values          |
-	// +==============================+
-	LastSteeringTrim = analogRead(PIN_THT_TRM);
-	LastThrottleTrim = analogRead(PIN_STR_TRM);
-	LastSteering     = analogRead(PIN_STR);
-	LastThrottle     = analogRead(PIN_THT);
-	LastThumbBtn     = !digitalRead(PIN_THMB_BTN);
-	LastMenuBtn      = !digitalRead(PIN_MENU_BTN);
-	LastSetBtn       = !digitalRead(PIN_SET_BTN);
-	LastTopBtn       = !digitalRead(PIN_TOP_BTN);
-	LastMidBtn       = !digitalRead(PIN_MID_BTN);
-	LastBtmBtn       = !digitalRead(PIN_BTM_BTN);
 }
 
 // Function to map a number from one range to another
@@ -607,7 +649,7 @@ void loop()
 	// +==============================+
 	// |           Vibrator           |
 	// +==============================+
-	if(!digitalRead(PIN_THMB_BTN) && VibCountdown == 0 && !VibActivated)
+	if(VibEnabled && !digitalRead(PIN_THMB_BTN) && VibCountdown == 0 && !VibActivated)
 	{
 		VibCountdown = VIB_DURATION;
 		digitalWrite(PIN_VIBRATOR, HIGH); // turn on vibrator
@@ -628,25 +670,55 @@ void loop()
     if (bleGamepad.isConnected())
     {
 		#if FINISHED_CONTROLLER
-        if     (!bleGamepad.isPressed(BLE_THMB_BTN) && !digitalRead(PIN_THMB_BTN)){ bleGamepad.press  (BLE_THMB_BTN); }
-        else if( bleGamepad.isPressed(BLE_THMB_BTN) &&  digitalRead(PIN_THMB_BTN)){ bleGamepad.release(BLE_THMB_BTN); }
-        if     (!bleGamepad.isPressed(BLE_SET_BTN)  && !digitalRead(PIN_SET_BTN)) { bleGamepad.press  (BLE_SET_BTN);  }
-        else if( bleGamepad.isPressed(BLE_SET_BTN)  &&  digitalRead(PIN_SET_BTN)) { bleGamepad.release(BLE_SET_BTN);  }
-        if     (!bleGamepad.isPressed(BLE_MENU_BTN) && !digitalRead(PIN_MENU_BTN)){ bleGamepad.press  (BLE_MENU_BTN); }
-        else if( bleGamepad.isPressed(BLE_MENU_BTN) &&  digitalRead(PIN_MENU_BTN)){ bleGamepad.release(BLE_MENU_BTN); }
-        if     (!bleGamepad.isPressed(BLE_TOP_BTN)  && !digitalRead(PIN_TOP_BTN)) { bleGamepad.press  (BLE_TOP_BTN);  }
-        else if( bleGamepad.isPressed(BLE_TOP_BTN)  &&  digitalRead(PIN_TOP_BTN)) { bleGamepad.release(BLE_TOP_BTN);  }
-        if     (!bleGamepad.isPressed(BLE_MID_BTN)  && !digitalRead(PIN_MID_BTN)) { bleGamepad.press  (BLE_MID_BTN);  }
-        else if( bleGamepad.isPressed(BLE_MID_BTN)  &&  digitalRead(PIN_MID_BTN)) { bleGamepad.release(BLE_MID_BTN);  }
-        if     (!bleGamepad.isPressed(BLE_BTM_BTN)  && !digitalRead(PIN_BTM_BTN)) { bleGamepad.press  (BLE_BTM_BTN);  }
-        else if( bleGamepad.isPressed(BLE_BTM_BTN)  &&  digitalRead(PIN_BTM_BTN)) { bleGamepad.release(BLE_BTM_BTN);  }
+			if(AndroidMode)
+			{
+		        if     (!bleGamepad.isPressed(AND_THMB_BTN) && !digitalRead(PIN_THMB_BTN)){ bleGamepad.press  (AND_THMB_BTN); }
+		        else if( bleGamepad.isPressed(AND_THMB_BTN) &&  digitalRead(PIN_THMB_BTN)){ bleGamepad.release(AND_THMB_BTN); }
+		        if     (!bleGamepad.isPressed(AND_SET_BTN)  && !digitalRead(PIN_SET_BTN)) { bleGamepad.press  (AND_SET_BTN);  }
+		        else if( bleGamepad.isPressed(AND_SET_BTN)  &&  digitalRead(PIN_SET_BTN)) { bleGamepad.release(AND_SET_BTN);  }
+		        if     (!bleGamepad.isPressed(AND_MENU_BTN) && !digitalRead(PIN_MENU_BTN)){ bleGamepad.press  (AND_MENU_BTN); }
+		        else if( bleGamepad.isPressed(AND_MENU_BTN) &&  digitalRead(PIN_MENU_BTN)){ bleGamepad.release(AND_MENU_BTN); }
+		        if     (!bleGamepad.isPressed(AND_TOP_BTN)  && !digitalRead(PIN_TOP_BTN)) { bleGamepad.press  (AND_TOP_BTN);  }
+		        else if( bleGamepad.isPressed(AND_TOP_BTN)  &&  digitalRead(PIN_TOP_BTN)) { bleGamepad.release(AND_TOP_BTN);  }
+		        if     (!bleGamepad.isPressed(AND_MID_BTN)  && !digitalRead(PIN_MID_BTN)) { bleGamepad.press  (AND_MID_BTN);  }
+		        else if( bleGamepad.isPressed(AND_MID_BTN)  &&  digitalRead(PIN_MID_BTN)) { bleGamepad.release(AND_MID_BTN);  }
+		        if     (!bleGamepad.isPressed(AND_BTM_BTN)  && !digitalRead(PIN_BTM_BTN)) { bleGamepad.press  (AND_BTM_BTN);  }
+		        else if( bleGamepad.isPressed(AND_BTM_BTN)  &&  digitalRead(PIN_BTM_BTN)) { bleGamepad.release(AND_BTM_BTN);  }
+		    }
+		    else
+		    {
+		    	if     (!bleGamepad.isPressed(BLE_THMB_BTN) && !digitalRead(PIN_THMB_BTN)){ bleGamepad.press  (BLE_THMB_BTN); }
+		        else if( bleGamepad.isPressed(BLE_THMB_BTN) &&  digitalRead(PIN_THMB_BTN)){ bleGamepad.release(BLE_THMB_BTN); }
+		        if     (!bleGamepad.isPressed(BLE_SET_BTN)  && !digitalRead(PIN_SET_BTN)) { bleGamepad.press  (BLE_SET_BTN);  }
+		        else if( bleGamepad.isPressed(BLE_SET_BTN)  &&  digitalRead(PIN_SET_BTN)) { bleGamepad.release(BLE_SET_BTN);  }
+		        if     (!bleGamepad.isPressed(BLE_MENU_BTN) && !digitalRead(PIN_MENU_BTN)){ bleGamepad.press  (BLE_MENU_BTN); }
+		        else if( bleGamepad.isPressed(BLE_MENU_BTN) &&  digitalRead(PIN_MENU_BTN)){ bleGamepad.release(BLE_MENU_BTN); }
+		        if     (!bleGamepad.isPressed(BLE_TOP_BTN)  && !digitalRead(PIN_TOP_BTN)) { bleGamepad.press  (BLE_TOP_BTN);  }
+		        else if( bleGamepad.isPressed(BLE_TOP_BTN)  &&  digitalRead(PIN_TOP_BTN)) { bleGamepad.release(BLE_TOP_BTN);  }
+		        if     (!bleGamepad.isPressed(BLE_MID_BTN)  && !digitalRead(PIN_MID_BTN)) { bleGamepad.press  (BLE_MID_BTN);  }
+		        else if( bleGamepad.isPressed(BLE_MID_BTN)  &&  digitalRead(PIN_MID_BTN)) { bleGamepad.release(BLE_MID_BTN);  }
+		        if     (!bleGamepad.isPressed(BLE_BTM_BTN)  && !digitalRead(PIN_BTM_BTN)) { bleGamepad.press  (BLE_BTM_BTN);  }
+		        else if( bleGamepad.isPressed(BLE_BTM_BTN)  &&  digitalRead(PIN_BTM_BTN)) { bleGamepad.release(BLE_BTM_BTN);  }
+		    }
 		#else // NO Nose buttons CONTROLLER
-        if     (!bleGamepad.isPressed(BLE_THMB_BTN) && !digitalRead(PIN_THMB_BTN)){ bleGamepad.press  (BLE_THMB_BTN); }
-        else if( bleGamepad.isPressed(BLE_THMB_BTN) &&  digitalRead(PIN_THMB_BTN)){ bleGamepad.release(BLE_THMB_BTN); }
-        if     (!bleGamepad.isPressed(BLE_SET_BTN)  && !digitalRead(PIN_SET_BTN)) { bleGamepad.press  (BLE_SET_BTN);  }
-        else if( bleGamepad.isPressed(BLE_SET_BTN)  &&  digitalRead(PIN_SET_BTN)) { bleGamepad.release(BLE_SET_BTN);  }
-        if     (!bleGamepad.isPressed(BLE_MENU_BTN) && !digitalRead(PIN_MENU_BTN)){ bleGamepad.press  (BLE_MENU_BTN); }
-        else if( bleGamepad.isPressed(BLE_MENU_BTN) &&  digitalRead(PIN_MENU_BTN)){ bleGamepad.release(BLE_MENU_BTN); }
+			if(AndroidMode)
+			{
+		        if     (!bleGamepad.isPressed(AND_THMB_BTN) && !digitalRead(PIN_THMB_BTN)){ bleGamepad.press  (AND_THMB_BTN); }
+		        else if( bleGamepad.isPressed(AND_THMB_BTN) &&  digitalRead(PIN_THMB_BTN)){ bleGamepad.release(AND_THMB_BTN); }
+		        if     (!bleGamepad.isPressed(AND_SET_BTN)  && !digitalRead(PIN_SET_BTN)) { bleGamepad.press  (AND_SET_BTN);  }
+		        else if( bleGamepad.isPressed(AND_SET_BTN)  &&  digitalRead(PIN_SET_BTN)) { bleGamepad.release(AND_SET_BTN);  }
+		        if     (!bleGamepad.isPressed(AND_MENU_BTN) && !digitalRead(PIN_MENU_BTN)){ bleGamepad.press  (AND_MENU_BTN); }
+		        else if( bleGamepad.isPressed(AND_MENU_BTN) &&  digitalRead(PIN_MENU_BTN)){ bleGamepad.release(AND_MENU_BTN); }
+		    }
+		    else
+		    {
+		    	if     (!bleGamepad.isPressed(BLE_THMB_BTN) && !digitalRead(PIN_THMB_BTN)){ bleGamepad.press  (BLE_THMB_BTN); }
+		        else if( bleGamepad.isPressed(BLE_THMB_BTN) &&  digitalRead(PIN_THMB_BTN)){ bleGamepad.release(BLE_THMB_BTN); }
+		        if     (!bleGamepad.isPressed(BLE_SET_BTN)  && !digitalRead(PIN_SET_BTN)) { bleGamepad.press  (BLE_SET_BTN);  }
+		        else if( bleGamepad.isPressed(BLE_SET_BTN)  &&  digitalRead(PIN_SET_BTN)) { bleGamepad.release(BLE_SET_BTN);  }
+		        if     (!bleGamepad.isPressed(BLE_MENU_BTN) && !digitalRead(PIN_MENU_BTN)){ bleGamepad.press  (BLE_MENU_BTN); }
+		        else if( bleGamepad.isPressed(BLE_MENU_BTN) &&  digitalRead(PIN_MENU_BTN)){ bleGamepad.release(BLE_MENU_BTN); }
+		    }
 		#endif
 
 		#if 0
