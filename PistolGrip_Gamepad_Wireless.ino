@@ -80,6 +80,7 @@ Notes for revisions
 #define NEG_AXIS            false // set axis range -32767 to 32767 (Some non-Windows operating systems and web based gamepad testers don't like min axis set below 0, so 0 is set by default)
 #define SIM_CONTROLS        false // enable and map throttle/steering to "sim" controls
 #define FINISHED_CONTROLLER true // changes IO for with/without nose buttons
+#define PRINTOUTS           false
 
 // BLE_Gamepad_Config
 #define NUM_BUTTONS      8 // do be able to natrually map BUTTON_BACK in Re-Volt. we only have 6 actual
@@ -179,6 +180,7 @@ Notes for revisions
 	#define PIN_THT_TRM   (5)  // GPIO2  // ADC1_4
 	#define PIN_STR       (6)  // GPIO1  // ADC1_5
 	#define PIN_THT       (7)  // GPIO0  // ADC1_6
+	#define PIN_BATT_ADC  (XX) // GPIOXX // ADCX_X NOTE: implement to keep code happy
 	#define PIN_THMB_BTN  (4)  // GPIO4  // (2) // D2
 	#define PIN_MENU_BTN  (5)  // GPIO5  // (3) // D3
 	#define PIN_SET_BTN   (6)  // GPIO6  // (4) // D4
@@ -192,6 +194,7 @@ Notes for revisions
 	#define PIN_THT_TRM   (5)  // GPIO5  // ADC1_4
 	#define PIN_STR       (6)  // GPIO6  // ADC1_5
 	#define PIN_THT       (7)  // GPIO7  // ADC1_6
+	#define PIN_BATT_ADC  (10) // GPIO10 // ADC1_9
 	#define PIN_THMB_BTN  (38) // GPI38  // (38)
 	#define PIN_MENU_BTN  (2)  // GPIO2  // (0)
 	#define PIN_SET_BTN   (1)  // GPIO1  // (1)
@@ -294,9 +297,9 @@ Notes for revisions
 // #define PROD_NAME  "A0306966 RC-Gamepad"
 // #define CONTROLLER_ID 0x6966
 
-// A0306712 ****************************** now full controller
-#define PROD_NAME  "A0306712 RC-Gamepad"
-#define CONTROLLER_ID 0x6712
+// // A0306712 ****************************** now full controller
+// #define PROD_NAME  "A0306712 RC-Gamepad"
+// #define CONTROLLER_ID 0x6712
 
 // // A0148987 ****************************** Currently an Arduino controller (now full controller)
 // #define PROD_NAME  "A0148987 RC-Gamepad"
@@ -335,7 +338,7 @@ Notes for revisions
 // #define CONTROLLER_ID 0x0075
 
 #ifndef PROD_NAME
-#define PROD_NAME "RSP Controller"
+#define PROD_NAME "Re-Vamp Gamepad"
 #endif
 
 #ifndef CONTROLLER_ID
@@ -347,20 +350,35 @@ Notes for revisions
 // +--------------------------------------------------------------+
 #define ADC_MAX         0xFFF // For ESP32-C3 12-Bit (4096 values, ie. 0-4095)
 #define ADC_HALF        ((ADC_MAX+1)/2)
+#define ADC_MAX_V       3.1 // max voltage ADC can reada
 #define ADC_FILT_LEN    5 // Rolling average length
 #define XINPUT_MAX      0xFFFF // 65536 i.e. 16 bit resolution
 #define XINPUT_MIN      -65536 // 16 bit resolution i.e. 0x10000
 #define CONV_MULTI      (XINPUT_MAX/(ADC_MAX+1)) // Conversion multiplier from ADC to XINPUT resolutions
 #define STARTING_LIMITS 100 // every potentiometer is different so we'll ring the values in a bit to start
 
-#define BAT_LOW_VR1     4.263 // this is when battery voltage starts to affect 3.3v regulated power. Read at regulator input
-#define BAT_LOW_D2      4.484 // this is when battery voltage starts to affect 3.3v regulated power. read before the protection diode
+// +==============================+
+// |        Batt Terminals        |
+// +==============================+
+#define BATT_FILT_LEN    10 // Rolling average length
+#define BATT_ADC_OFFSET  0.1 // where is this coming from?
+#define BATT_RHIGH       221000 // Reistor in voltage devider network
+#define BATT_RLOW        100000 // Reistor in voltage devider network
+#define BATT_CONV_ADJ    0.370  // need to adjust the conversion?
+#define BATT_CONVERSION  (((BATT_RHIGH + BATT_RLOW * 1.0) / BATT_RLOW) + BATT_CONV_ADJ) // multiplier to conver to voltagealc
+#define BATT_MAX_V       (ADC_MAX_V * BATT_CONVERSION) // actual voltage the ADC can read
+#define BAT_LOW_VR1      4.263 // this is when battery voltage starts to affect 3.3v regulated power. Read at regulator input
+#define BAT_NO_NOISE_VR1 4.404 // Below this is when power rail sag from transmits starts to become noticable
+#define BAT_LOW_D2       4.484 // Below this is when battery voltage starts to affect 3.3v regulated power. read before the protection diode
+#define BAT_NO_NOISE_D2  4.650 // Below this is when power rail sag from transmits starts to become noticable
+#define BAT_NO_V         1.000 // Above this there is battery voltgae present
 
 #define PWM_LED_MAX 255
 #define PWM_LED_MIN 0 // LEDs don't turn on till this?
 #define PWM_CONV_MULTI (PWM_LED_MAX - PWM_LED_MIN) // Conversion multiplier from ADC to XINPUT resolutions
 
 #define VIB_DURATION 50 // ms
+#define PRINT_PERIOD 1000 // ms
 
 #define TRIM_PERCENT 0.30 //% amount of range trim can adjust center point
 #define TRIM_MIN 10 // trim pots get crazy around the edges
@@ -395,6 +413,8 @@ Joystick_  usbGamepad(JOYSTICK_DEFAULT_REPORT_ID,JOYSTICK_TYPE_GAMEPAD,
 					  ENABLE_ACCELERATOR, ENABLE_BRAKE, ENABLE_STEERING); // No accelerator, brake, or steering
 hw_timer_t *Timer0_Cfg = NULL;
 
+int PrintCountdown = 0;
+
 int VibCountdown = 0;
 bool VibActivated = false;
 bool TriggerMode = false; // throttle and brakes mapped to triggers instead, like a standard controller
@@ -413,6 +433,7 @@ int  LastSteeringTrim = 0;
 int  LastThrottleTrim = 0;
 int  LastSteering     = 0;
 int  LastThrottle     = 0;
+int  LastBattery      = 0;
 bool LastThumbBtn     = false;
 bool LastMenuBtn      = false;
 bool LastSetBtn       = false;
@@ -424,6 +445,7 @@ uint AdcBufferThrottle[ADC_FILT_LEN] = {0};
 uint AdcBufferSteering[ADC_FILT_LEN] = {0};
 uint AdcBufferSteeringTrim[ADC_FILT_LEN] = {0};
 uint AdcBufferThrottleTrim[ADC_FILT_LEN] = {0};
+uint AdcBufferBattery[BATT_FILT_LEN] = {0};
 
 // +--------------------------------------------------------------+
 // |                         Timer 0 ISR                          |
@@ -431,6 +453,7 @@ uint AdcBufferThrottleTrim[ADC_FILT_LEN] = {0};
 void IRAM_ATTR Timer0_ISR()
 {
 	if(VibCountdown > 0) { VibCountdown --; }
+	if(PrintCountdown > 0) { PrintCountdown --; }
 }
 
 // +--------------------------------------------------------------+
@@ -454,6 +477,7 @@ void setup()
 	pinMode(PIN_STR_TRM,   INPUT); // No Pullup for ADC?
 	pinMode(PIN_THT,       INPUT); // No Pullup for ADC?
 	pinMode(PIN_THT_TRM,   INPUT); // No Pullup for ADC?
+	pinMode(PIN_BATT_ADC,  INPUT); // No Pullup for ADC?
 	pinMode(PIN_THMB_BTN,  INPUT_PULLUP);
 	pinMode(PIN_MENU_BTN,  INPUT_PULLUP);
 	pinMode(PIN_SET_BTN,   INPUT_PULLUP);
@@ -473,6 +497,7 @@ void setup()
 	LastThrottleTrim = analogRead(PIN_STR_TRM);
 	LastSteering     = analogRead(PIN_STR);
 	LastThrottle     = analogRead(PIN_THT);
+	LastBattery      = analogRead(PIN_BATT_ADC);
 	LastThumbBtn     = !digitalRead(PIN_THMB_BTN);
 	LastMenuBtn      = !digitalRead(PIN_MENU_BTN);
 	LastSetBtn       = !digitalRead(PIN_SET_BTN);
@@ -507,9 +532,10 @@ void setup()
 	// +==============================+
 	// |            Serial            |
 	// +==============================+
-	// Serial.begin(115200);
-	// Serial.println("Starting BLE work!");
-	
+	#if PRINTOUTS
+		Serial.begin(115200);
+		Serial.println("Starting BLE work!");
+	#endif
 	// +==============================+
 	// |          Bluetooth           |
 	// +==============================+
@@ -563,7 +589,7 @@ int mapRange(int numIn, int minIn, int maxIn, int minOut, int maxOut)
     return (int)((((float)(numIn - minIn) / (maxIn - minIn)) * (maxOut - minOut)) + minOut);
 }
 
-uint AverageAdc(int AdcIn, uint *buffer, int len)
+uint AverageAdc(int adcIn, uint *buffer, int len)
 {
 	int bIndex = 0;
 	uint32_t average = 0;
@@ -573,9 +599,14 @@ uint AverageAdc(int AdcIn, uint *buffer, int len)
 		buffer[bIndex] = buffer[bIndex-1];
 		average += buffer[bIndex];
 	}
-	buffer[0] = AdcIn;
-	average += AdcIn;
+	buffer[0] = adcIn;
+	average += adcIn;
 	return (uint)(average/len);
+}
+
+float GetBattVoltageFromAdc(int adcIn)
+{
+	return (adcIn * (BATT_MAX_V / ADC_MAX));
 }
 
 void loop()
@@ -584,6 +615,7 @@ void loop()
 	int steeringPosition = AverageAdc(analogRead(PIN_STR), AdcBufferThrottle, ADC_FILT_LEN); // NOTE: 12 bit ADC (0-4095)
 	int throttleTrimPosition = AverageAdc(analogRead(PIN_THT_TRM), AdcBufferSteeringTrim, ADC_FILT_LEN); // NOTE: 12 bit ADC (0-4095)
 	int steeringTrimPosition = AverageAdc(analogRead(PIN_STR_TRM), AdcBufferThrottleTrim, ADC_FILT_LEN); // NOTE: 12 bit ADC (0-4095)
+	float batteryLevel = GetBattVoltageFromAdc(AverageAdc(analogRead(PIN_BATT_ADC) + BATT_ADC_OFFSET, AdcBufferBattery, BATT_FILT_LEN)); // NOTE: 12 bit ADC (0-4095)
 
 	if(ThrottleMin > throttlePosition) { ThrottleMin = throttlePosition; }
 	if(ThrottleMax < throttlePosition) { ThrottleMax = throttlePosition; }
@@ -634,14 +666,45 @@ void loop()
 		trimmedSteering = mapRange(adjustedSteering, 0, trimmedCenter, 0, ADC_HALF); // map from 0-50%
 	}
 
+
+	// +==============================+
+	// |          Printouts           |
+	// +==============================+
+	#if PRINTOUTS
+		if(PrintCountdown == 0)
+		{
+			PrintCountdown = PRINT_PERIOD;
+			Serial.print("Con: ");
+			Serial.print(BATT_CONVERSION, 2);
+			Serial.print(" Max: ");
+			Serial.print(BATT_MAX_V);
+			Serial.print(" Raw: ");
+			Serial.print(analogRead(PIN_BATT_ADC));
+			Serial.print(" Vol: ");
+			Serial.print((analogRead(PIN_BATT_ADC) * (ADC_MAX_V / 4095.0)) + BATT_ADC_OFFSET, 4);
+			Serial.print(" Bat: ");
+			Serial.println(batteryLevel, 4);
+		}
+	#endif
+
 	// +==============================+
 	// |             LEDS             |
 	// +==============================+
-	if(!digitalRead(PIN_MID_BTN))
+	// if(!digitalRead(PIN_MID_BTN))
+	if(batteryLevel > 2.0 && batteryLevel < 4.6) // Low battery voltage!
 	{
-		analogWrite(PIN_LED_RED, PWM_LED_MIN);
-		analogWrite(PIN_LED_GREEN, PWM_LED_MIN);
+		analogWrite(PIN_LED_RED,   ((PWM_LED_MAX - PWM_LED_MIN)/2));
+		analogWrite(PIN_LED_GREEN, ((PWM_LED_MAX - PWM_LED_MIN)/2));
+		// analogWrite(PIN_LED_RED,   mapRange(batteryLevel, 0, BATT_MAX_V, PWM_LED_MIN, PWM_LED_MAX));
+		// analogWrite(PIN_LED_GREEN, mapRange(ADC_MAX - analogRead(PIN_BATT_ADC), 0, ADC_MAX, PWM_LED_MIN, PWM_LED_MAX));
 	}
+	// else if(batteryLevel > 2.0) // Low battery voltage!
+	// {
+	// 	analogWrite(PIN_LED_RED,   ((PWM_LED_MAX - PWM_LED_MIN)/2));
+	// 	analogWrite(PIN_LED_GREEN, ((PWM_LED_MAX - PWM_LED_MIN)/2));
+	// 	// analogWrite(PIN_LED_RED,   mapRange(batteryLevel, 0, BATT_MAX_V, PWM_LED_MIN, PWM_LED_MAX));
+	// 	// analogWrite(PIN_LED_GREEN, mapRange(ADC_MAX - analogRead(PIN_BATT_ADC), 0, ADC_MAX, PWM_LED_MIN, PWM_LED_MAX));
+	// }
 	else
 	{
 		#if 0 // LEDs based off Trim
