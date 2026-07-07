@@ -13,8 +13,7 @@ Date: 10/03/2025
 */
 
 /*
-Notes for revisions
-	- Add Battery ADC (can report over BLE) (pretty much implemented! just need to manually calibrate)
+Notes for possible revisions
 	- Add ADC sensing for gamepad USB (to maybe disconnect BLE?)
 */
 
@@ -53,7 +52,6 @@ Notes for revisions
     & Bottom &
 */
 
-
 // +==============================+
 // |        XINPUT Buttons        |
 // +==============================+
@@ -83,10 +81,7 @@ Notes for revisions
 // +--------------------------------------------------------------+
 #define NEG_AXIS            false // set axis range -32767 to 32767 (Some non-Windows operating systems and web based gamepad testers don't like min axis set below 0, so 0 is set by default)
 #define SIM_CONTROLS        false // enable and map throttle/steering to "sim" controls
-#define FINISHED_CONTROLLER true // changes IO for with/without nose buttons
 #define PRINTOUTS           true
-#define BATT_LEVEL          true // report battery level using voltage divider mod
-#define PERSISTANT_TRIM     true // save trim to chip. hide adjustments behind menu. (use trim as other game inputs)
 #define WRTIE_REGISTRATION  false // write controller ID and other info into non-volitale memory
 #define VIB_DEFAULT         false // vibrator default to on/off (also saved to persistance memory!)
 
@@ -120,7 +115,7 @@ Notes for revisions
 // +--------------------------------------------------------------+
 // button number through the library to end device changes depending on some things...
 // +==============================+
-// |    Default REVOLT Mapping    |
+// |     Default GAME Mapping     |
 // +==============================+
 //         Action        Windows  Android#  Android      Ble
 // #define Fire          Button_0     1     Button_A      0 
@@ -132,142 +127,96 @@ Notes for revisions
 // #define Pause         Button_3     4     Button_Y      0 
 
 // +==============================+
-// |      Re-Volt BLE Mapping     |
+// |        Game BLE Mapping      |
 // +==============================+
-#define BLE_REVOLT_ACCEPT_ITEM 1
-#define BLE_REVOLT_FLIP_CAR    2
-#define BLE_REVOLT_RESET_CAR   3
-#define BLE_REVOLT_BACK_PAUSE  4
-#define BLE_REVOLT_LOOK_BACK   5
-#define BLE_REVOLT_HORN        6
-#define BLE_REVOLT_UP          10 // verify
-#define BLE_REVOLT_DOWN        11 // verify
-#define BLE_REVOLT_LEFT        12 // verify
-#define BLE_REVOLT_RIGHT       13 // verify
-#define BLE_REVOLT_FWDREV      JOY_LEFT
-#define BLE_REVOLT_STEER       JOY_LEFT
+#define BLE_GAME_ACCEPT_ITEM 1
+#define BLE_GAME_FLIP_CAR    2
+#define BLE_GAME_RESET_CAR   3
+#define BLE_GAME_BACK_PAUSE  4
+#define BLE_GAME_LOOK_BACK   5
+#define BLE_GAME_HORN        6
+#define BLE_GAME_UP          10 // verify
+#define BLE_GAME_DOWN        11 // verify
+#define BLE_GAME_LEFT        12 // verify
+#define BLE_GAME_RIGHT       13 // verify
+#define BLE_GAME_FWDREV      JOY_LEFT
+#define BLE_GAME_STEER       JOY_LEFT
 
 // +==============================+
-// |    Re-Volt Android Mapping   | // 7 Also back/pause?
+// |      Game Android Mapping    | // 7 Also back/pause?
 // +==============================+ //0,1,2,3,4,5,6,7,8 aren't the ones we're looking for
-#define AND_REVOLT_ACCEPT_ITEM 1 // Button A
-#define AND_REVOLT_FLIP_CAR    2 // Button B
-#define AND_REVOLT_RESET_CAR   4 // Button X
-#define AND_REVOLT_BACK_PAUSE  5 // Button Y
-#define AND_REVOLT_LOOK_BACK   6
-#define AND_REVOLT_HORN        7
-#define AND_REVOLT_UP          10 // verify
-#define AND_REVOLT_DOWN        11 // verify
-#define AND_REVOLT_LEFT        12 // verify
-#define AND_REVOLT_RIGHT       13 // verify
-#define AND_REVOLT_FWDREV      JOY_LEFT
-#define AND_REVOLT_STEER       JOY_LEFT
+#define AND_GAME_ACCEPT_ITEM 1 // Button A
+#define AND_GAME_FLIP_CAR    2 // Button B
+#define AND_GAME_RESET_CAR   4 // Button X
+#define AND_GAME_BACK_PAUSE  5 // Button Y
+#define AND_GAME_LOOK_BACK   6
+#define AND_GAME_HORN        7
+#define AND_GAME_UP          10 // verify
+#define AND_GAME_DOWN        11 // verify
+#define AND_GAME_LEFT        12 // verify
+#define AND_GAME_RIGHT       13 // verify
+#define AND_GAME_FWDREV      JOY_LEFT
+#define AND_GAME_STEER       JOY_LEFT
 
 
 // +==============================+
-// |     Re-Volt USB Mapping      |
+// |       Game USB Mapping       |
 // +==============================+
-#define USB_REVOLT_ACCEPT_ITEM 0
-#define USB_REVOLT_FLIP_CAR    1
-#define USB_REVOLT_RESET_CAR   2
-#define USB_REVOLT_BACK_PAUSE  3
-#define USB_REVOLT_LOOK_BACK   4
-#define USB_REVOLT_HORN        5
-#define USB_REVOLT_UP          10 // verify
-#define USB_REVOLT_DOWN        11 // verify
-#define USB_REVOLT_LEFT        12 // verify
-#define USB_REVOLT_RIGHT       13 // verify
-#define USB_REVOLT_FWDREV      JOY_LEFT
-#define USB_REVOLT_STEER       JOY_LEFT
+#define USB_GAME_ACCEPT_ITEM 0
+#define USB_GAME_FLIP_CAR    1
+#define USB_GAME_RESET_CAR   2
+#define USB_GAME_BACK_PAUSE  3
+#define USB_GAME_LOOK_BACK   4
+#define USB_GAME_HORN        5
+#define USB_GAME_UP          10 // verify
+#define USB_GAME_DOWN        11 // verify
+#define USB_GAME_LEFT        12 // verify
+#define USB_GAME_RIGHT       13 // verify
+#define USB_GAME_FWDREV      JOY_LEFT
+#define USB_GAME_STEER       JOY_LEFT
 
 // +==============================+
 // |            PINOUT            |
-// +==============================+
-#if 0 // ESP32-C3 prototype
-	#define PIN_STR_TRM   (4)  // GPIO3  // ADC1_3
-	#define PIN_THT_TRM   (5)  // GPIO2  // ADC1_4
-	#define PIN_STR       (6)  // GPIO1  // ADC1_5
-	#define PIN_THT       (7)  // GPIO0  // ADC1_6
-	#define PIN_V5DC_ADC  (XX) // GPIOXX // ADCX_X NOTE: implement to keep code happy
-	#define PIN_BATT_ADC  (XX) // GPIOXX // ADCX_X NOTE: implement to keep code happy
-	#define PIN_THMB_BTN  (4)  // GPIO4  // (2) // D2
-	#define PIN_MENU_BTN  (5)  // GPIO5  // (3) // D3
-	#define PIN_SET_BTN   (6)  // GPIO6  // (4) // D4
-	#define PIN_LED_RED   (7)  // GPIO7  // (5) // D5 NOTE: PWM!
-	#define PIN_LED_GREEN (10) // GPIO10 // (6) // D6 NOTE: PWM!
-	#define PIN_TOP_BTN   (19) // GPIO19 // (7) // D7 NOTE: USB Uses this?
-	#define PIN_MID_BTN   (20) // GPIO20 // (8) // D8
-	#define PIN_BTM_BTN   (21) // GPIO21 // (9) // D9
-#else // ESP32-S3
-	#define PIN_STR_TRM   (4)  // GPIO4  // ADC1_3
-	#define PIN_THT_TRM   (5)  // GPIO5  // ADC1_4
-	#define PIN_STR       (6)  // GPIO6  // ADC1_5
-	#define PIN_THT       (7)  // GPIO7  // ADC1_6
-	#define PIN_V5DC_ADC  (9)  // GPIO9  // ADC1_8
-	#define PIN_BATT_ADC  (10) // GPIO10 // ADC1_9
-	#define PIN_THMB_BTN  (38) // GPI38  // (38)
-	#define PIN_MENU_BTN  (2)  // GPIO2  // (0)
-	#define PIN_SET_BTN   (1)  // GPIO1  // (1)
-	#define PIN_LED_RED   (42) // GPIO42 // (42) NOTE: PWM!
-	#define PIN_LED_GREEN (41) // GPIO41 // (41) NOTE: PWM!
-	#define PIN_TOP_BTN   (16) // GPIO16 // (16)
-	#define PIN_MID_BTN   (17) // GPIO17 // (17)
-	#define PIN_BTM_BTN   (18) // GPIO18 // (18)
-	#define PIN_VIBRATOR  (39) // GPIO39 // (39)
-#endif
+// +==============================+ // ESP32-S3
+#define PIN_STR_TRM   (4)  // GPIO4  // ADC1_3
+#define PIN_THT_TRM   (5)  // GPIO5  // ADC1_4
+#define PIN_STR       (6)  // GPIO6  // ADC1_5
+#define PIN_THT       (7)  // GPIO7  // ADC1_6
+#define PIN_V5DC_ADC  (9)  // GPIO9  // ADC1_8
+#define PIN_BATT_ADC  (10) // GPIO10 // ADC1_9
+#define PIN_THMB_BTN  (38) // GPI38  // (38)
+#define PIN_MENU_BTN  (2)  // GPIO2  // (0)
+#define PIN_SET_BTN   (1)  // GPIO1  // (1)
+#define PIN_LED_RED   (42) // GPIO42 // (42) NOTE: PWM!
+#define PIN_LED_GREEN (41) // GPIO41 // (41) NOTE: PWM!
+#define PIN_TOP_BTN   (16) // GPIO16 // (16)
+#define PIN_MID_BTN   (17) // GPIO17 // (17)
+#define PIN_BTM_BTN   (18) // GPIO18 // (18)
+#define PIN_VIBRATOR  (39) // GPIO39 // (39)
 
 // +==============================+
 // |        Button Mapping        |
 // +==============================+
-#if FINISHED_CONTROLLER
-#define USB_THMB_BTN  USB_REVOLT_ACCEPT_ITEM
-#define USB_MENU_BTN  USB_REVOLT_BACK_PAUSE
-#define USB_SET_BTN   USB_REVOLT_RESET_CAR
-#define USB_TOP_BTN   USB_REVOLT_LOOK_BACK
-#define USB_MID_BTN   USB_REVOLT_HORN
-#define USB_BTM_BTN   USB_REVOLT_FLIP_CAR
-#else // NO Nose buttons CONTROLLER
-#define USB_THMB_BTN  USB_REVOLT_ACCEPT_ITEM
-#define USB_MENU_BTN  USB_REVOLT_BACK_PAUSE
-#define USB_SET_BTN   USB_REVOLT_FLIP_CAR
-// #define USB_TOP_BTN   USB_REVOLT_RESET_CAR
-// #define USB_MID_BTN   USB_REVOLT_HORN
-// #define USB_BTM_BTN   USB_REVOLT_LOOK_BACK
-#endif
+#define USB_THMB_BTN  USB_GAME_ACCEPT_ITEM
+#define USB_MENU_BTN  USB_GAME_BACK_PAUSE
+#define USB_SET_BTN   USB_GAME_RESET_CAR
+#define USB_TOP_BTN   USB_GAME_LOOK_BACK
+#define USB_MID_BTN   USB_GAME_HORN
+#define USB_BTM_BTN   USB_GAME_FLIP_CAR
 
-#if FINISHED_CONTROLLER
-#define BLE_THMB_BTN  BLE_REVOLT_ACCEPT_ITEM
-#define BLE_MENU_BTN  BLE_REVOLT_BACK_PAUSE
-#define BLE_SET_BTN   BLE_REVOLT_RESET_CAR
-#define BLE_TOP_BTN   BLE_REVOLT_LOOK_BACK
-#define BLE_MID_BTN   BLE_REVOLT_HORN
-#define BLE_BTM_BTN   BLE_REVOLT_FLIP_CAR
-#else // NO Nose buttons CONTROLLER
-#define BLE_THMB_BTN  BLE_REVOLT_ACCEPT_ITEM
-#define BLE_MENU_BTN  BLE_REVOLT_BACK_PAUSE
-#define BLE_SET_BTN   BLE_REVOLT_FLIP_CAR
-// #define BLE_TOP_BTN   BLE_REVOLT_RESET_CAR
-// #define BLE_MID_BTN   BLE_REVOLT_HORN
-// #define BLE_BTM_BTN   BLE_REVOLT_LOOK_BACK
-#endif
+#define BLE_THMB_BTN  BLE_GAME_ACCEPT_ITEM
+#define BLE_MENU_BTN  BLE_GAME_BACK_PAUSE
+#define BLE_SET_BTN   BLE_GAME_RESET_CAR
+#define BLE_TOP_BTN   BLE_GAME_LOOK_BACK
+#define BLE_MID_BTN   BLE_GAME_HORN
+#define BLE_BTM_BTN   BLE_GAME_FLIP_CAR
 
-#if FINISHED_CONTROLLER
-#define AND_THMB_BTN  AND_REVOLT_ACCEPT_ITEM
-#define AND_MENU_BTN  AND_REVOLT_BACK_PAUSE
-#define AND_SET_BTN   AND_REVOLT_RESET_CAR
-#define AND_TOP_BTN   AND_REVOLT_LOOK_BACK
-#define AND_MID_BTN   AND_REVOLT_HORN
-#define AND_BTM_BTN   AND_REVOLT_FLIP_CAR
-#else // NO Nose buttons CONTROLLER
-#define AND_THMB_BTN  AND_REVOLT_ACCEPT_ITEM
-#define AND_MENU_BTN  AND_REVOLT_BACK_PAUSE
-#define AND_SET_BTN   AND_REVOLT_FLIP_CAR
-// #define AND_TOP_BTN   AND_REVOLT_RESET_CAR
-// #define AND_MID_BTN   AND_REVOLT_HORN
-// #define AND_BTM_BTN   AND_REVOLT_LOOK_BACK
-#endif
-
-
+#define AND_THMB_BTN  AND_GAME_ACCEPT_ITEM
+#define AND_MENU_BTN  AND_GAME_BACK_PAUSE
+#define AND_SET_BTN   AND_GAME_RESET_CAR
+#define AND_TOP_BTN   AND_GAME_LOOK_BACK
+#define AND_MID_BTN   AND_GAME_HORN
+#define AND_BTM_BTN   AND_GAME_FLIP_CAR
 
 // +--------------------------------------------------------------+
 // |                        Controller IDs                        |
@@ -289,7 +238,7 @@ Notes for revisions
 // #define PROD_NAME  "A0392285 Re-Vamp"
 // #define CONTROLLER_ID 0x2285
 
-// // A0381549
+// // A0381549 ****************************** now full controller
 // #define PROD_NAME  "A0381549 Re-Vamp"
 // #define CONTROLLER_ID 0x1549
 
@@ -313,9 +262,9 @@ Notes for revisions
 // #define PROD_NAME  "A0306712 Re-Vamp"
 // #define CONTROLLER_ID 0x6712
 
-// A0148987 ****************************** Currently an Arduino controller (now full controller) (has Battery Mod)
-#define PROD_NAME  "A0148987 Re-Vamp"
-#define CONTROLLER_ID 0x8987
+// // A0148987 ****************************** Currently an Arduino controller (now full controller) (has Battery Mod)
+// #define PROD_NAME  "A0148987 Re-Vamp"
+// #define CONTROLLER_ID 0x8987
 
 // // A0148750 ****************************** messed up POT
 // #define PROD_NAME  "A0148750 Re-Vamp"
@@ -345,7 +294,7 @@ Notes for revisions
 // #define PROD_NAME  "A0337117 Re-Vamp"
 // #define CONTROLLER_ID 0x7117
 
-// // A0350075  ****************************** S3 POC turned full controller (has Battery Mod)
+// // A0350075  ****************************** S3 POC turned full controller
 // #define PROD_NAME  "A0350075 Re-Vamp"
 // #define CONTROLLER_ID 0x0075
 
@@ -372,39 +321,37 @@ Notes for revisions
 #define SET_FLASH_PERIOD 250 // ms how fast to flash when in settings mode (change saved trim pos)
 #define MENU_WAIT        3000 // ms how long to hold down MENU & SET buttons to enter menu
 
-#if BATT_LEVEL
-	// +==============================+
-	// |       Battery Defines        |
-	// +==============================+ // ADC before the protection Diode D2
-	#define BATT_FILT_LEN      10 // Rolling average length
-	#define BATT_ADC_OFFSET    ((ADC_MAX / ADC_MAX_V) * 0.2) // where is this coming from? (Apply pre-upscaling) (in volts)
-	#define BATT_RHIGH         221000 // Reistor in voltage devider network
-	#define BATT_RLOW          100000 // Reistor in voltage devider network
-	#define BATT_CONV_ADJ      0.000  // need to adjust the conversion? (actually not needed after adjusting pre conversion value?)
-	#define BATT_CONVERSION    (((BATT_RHIGH + BATT_RLOW * 1.0) / BATT_RLOW) + BATT_CONV_ADJ) // multiplier to conver to voltagealc
-	#define BATT_MAX_V         (ADC_MAX_V * BATT_CONVERSION) // actual voltage the ADC can read (should be ~9.951)
-	#define BATT_LOW           4.484 // Below this is when battery voltage starts to affect 3.3v regulated power. read before the protection diode
-	#define BATT_NO_NOISE      4.650 // Below this is when power rail sag from transmits starts to become noticable
-	#define BATT_NO_V          3.600 // Above this there is battery voltage present (when positive disconnected input floats to ~3.3V)
-	#define BATT_FULL          6.600 // Batteries full (100% battery) (Alkaline. Lithium will be higher)
-	#define BATT_D_HYST        0.150 // Diode drop is 0.3V. use half that as a hysteresis for "on battery" 
-	#define BATT_REP_DELTA     ((BATT_FULL - BATT_NO_NOISE) * 0.02) // 2% how much change in level before sending new value
-	#define BATT_UPDATE_PERIOD 10000 // ms
-	#define BATT_FLASH_PERIOD  500 // ms
+// +==============================+
+// |       Battery Defines        |
+// +==============================+ // ADC before the protection Diode D2
+#define BATT_FILT_LEN      10 // Rolling average length
+#define BATT_ADC_OFFSET    ((ADC_MAX / ADC_MAX_V) * 0.2) // where is this coming from? (Apply pre-upscaling) (in volts)
+#define BATT_RHIGH         221000 // Reistor in voltage devider network
+#define BATT_RLOW          100000 // Reistor in voltage devider network
+#define BATT_CONV_ADJ      0.000  // need to adjust the conversion? (actually not needed after adjusting pre conversion value?)
+#define BATT_CONVERSION    (((BATT_RHIGH + BATT_RLOW * 1.0) / BATT_RLOW) + BATT_CONV_ADJ) // multiplier to conver to voltagealc
+#define BATT_MAX_V         (ADC_MAX_V * BATT_CONVERSION) // actual voltage the ADC can read (should be ~9.951)
+#define BATT_LOW           4.484 // Below this is when battery voltage starts to affect 3.3v regulated power. read before the protection diode
+#define BATT_NO_NOISE      4.650 // Below this is when power rail sag from transmits starts to become noticable
+#define BATT_NO_V          3.600 // Above this there is battery voltage present (when positive disconnected input floats to ~3.3V)
+#define BATT_FULL          6.600 // Batteries full (100% battery) (Alkaline. Lithium will be higher)
+#define BATT_D_HYST        0.150 // Diode drop is 0.3V. use half that as a hysteresis for "on battery" 
+#define BATT_REP_DELTA     ((BATT_FULL - BATT_NO_NOISE) * 0.02) // 2% how much change in level before sending new value
+#define BATT_UPDATE_PERIOD 10000 // ms
+#define BATT_FLASH_PERIOD  500 // ms
 
-	// +==============================+
-	// |          5V Defines          |
-	// +==============================+ // ADC on the "5V" rail going into the LDO (can get power from either of the USB or the battery)
-	#define V5DC_FILT_LEN   10 // Rolling average length
-	#define V5DC_ADC_OFFSET ((ADC_MAX / ADC_MAX_V) * 0.2) // where is this coming from? (Apply pre-upscaling) (in volts)
-	#define V5DC_RHIGH      221000 // Reistor in voltage devider network
-	#define V5DC_RLOW       100000 // Reistor in voltage devider network
-	#define V5DC_CONV_ADJ   0.000  // need to adjust the conversion? (actually not needed after adjusting pre conversion value?)
-	#define V5DC_CONVERSION (((V5DC_RHIGH + V5DC_RLOW * 1.0) / V5DC_RLOW) + V5DC_CONV_ADJ) // multiplier to conver to voltagealc
-	#define V5DC_MAX_V      (ADC_MAX_V * V5DC_CONVERSION) // actual voltage the ADC can read (should be ~9.951)
-	#define V5DC_LOW        4.263 // this is when battery voltage starts to affect 3.3v regulated power. Read at regulator input
-	#define V5DC_NO_NOISE   4.404 // Below this is when power rail sag from transmits starts to become noticable
-#endif
+// +==============================+
+// |          5V Defines          |
+// +==============================+ // ADC on the "5V" rail going into the LDO (can get power from either of the USB or the battery)
+#define V5DC_FILT_LEN   10 // Rolling average length
+#define V5DC_ADC_OFFSET ((ADC_MAX / ADC_MAX_V) * 0.2) // where is this coming from? (Apply pre-upscaling) (in volts)
+#define V5DC_RHIGH      221000 // Reistor in voltage devider network
+#define V5DC_RLOW       100000 // Reistor in voltage devider network
+#define V5DC_CONV_ADJ   0.000  // need to adjust the conversion? (actually not needed after adjusting pre conversion value?)
+#define V5DC_CONVERSION (((V5DC_RHIGH + V5DC_RLOW * 1.0) / V5DC_RLOW) + V5DC_CONV_ADJ) // multiplier to conver to voltagealc
+#define V5DC_MAX_V      (ADC_MAX_V * V5DC_CONVERSION) // actual voltage the ADC can read (should be ~9.951)
+#define V5DC_LOW        4.263 // this is when battery voltage starts to affect 3.3v regulated power. Read at regulator input
+#define V5DC_NO_NOISE   4.404 // Below this is when power rail sag from transmits starts to become noticable
 
 #define PWM_LED_MAX 255
 #define PWM_LED_MIN 0 // LEDs don't turn on till this?
@@ -491,7 +438,6 @@ uint AdcBufferSteering[ADC_FILT_LEN] = {0};
 uint AdcBufferSteeringTrim[ADC_FILT_LEN] = {0};
 uint AdcBufferThrottleTrim[ADC_FILT_LEN] = {0};
 
-#if BATT_LEVEL
 float LastV5dc = 0.0;
 float LastSentBattery = 0.0;
 uint  AdcBufferBattery[BATT_FILT_LEN] = {0};
@@ -499,7 +445,6 @@ uint  AdcBufferPwrV5dc[V5DC_FILT_LEN] = {0};
 int   AdcUpdateCountdown = 0;
 bool  PowerFromUSB = false; // mainly used to stop constant battery updates when on USB power
 bool  BatteryLowIndication = false; // mainly used to give the LED flashing mode some hysteresis
-#endif
 
 // +--------------------------------------------------------------+
 // |                         Timer 0 ISR                          |
@@ -509,12 +454,9 @@ void IRAM_ATTR Timer0_ISR()
 	if(VibCountdown      > 0) { VibCountdown --; }
 	if(PrintCountdown    > 0) { PrintCountdown --; }
 	if(LedFlashCountdown > 0) { LedFlashCountdown --; }
+	if(AdcUpdateCountdown > 0) { AdcUpdateCountdown --; }
 
 	if(MenuEntrance) { MenuCount ++; } else { MenuCount = 0; }
-
-	#if BATT_LEVEL
-	if(AdcUpdateCountdown > 0) { AdcUpdateCountdown --; }
-	#endif
 }
 
 // +--------------------------------------------------------------+
@@ -537,10 +479,8 @@ void setup()
 	pinMode(PIN_STR_TRM,   INPUT); // No Pullup for ADC?
 	pinMode(PIN_THT,       INPUT); // No Pullup for ADC?
 	pinMode(PIN_THT_TRM,   INPUT); // No Pullup for ADC?
-	#if BATT_LEVEL
 	pinMode(PIN_V5DC_ADC,  INPUT); // No Pullup for ADC?
 	pinMode(PIN_BATT_ADC,  INPUT); // No Pullup for ADC?
-	#endif
 	pinMode(PIN_THMB_BTN,  INPUT_PULLUP);
 	pinMode(PIN_MENU_BTN,  INPUT_PULLUP);
 	pinMode(PIN_SET_BTN,   INPUT_PULLUP);
@@ -560,10 +500,8 @@ void setup()
 	LastSteeringTrim = analogRead(PIN_STR_TRM);
 	LastThrottle     = analogRead(PIN_THT);
 	LastSteering     = analogRead(PIN_STR);
-	#if BATT_LEVEL
 	LastV5dc         = GetVoltageFromAdc(analogRead(PIN_V5DC_ADC) + V5DC_ADC_OFFSET);
 	LastSentBattery  = GetVoltageFromAdc(analogRead(PIN_BATT_ADC) + BATT_ADC_OFFSET);
-	#endif
 	LastThumbBtn     = !digitalRead(PIN_THMB_BTN);
 	LastMenuBtn      = !digitalRead(PIN_MENU_BTN);
 	LastSetBtn       = !digitalRead(PIN_SET_BTN);
@@ -596,9 +534,6 @@ void setup()
 		Serial.printf ("       %s %s\r\n", MANF_NAME, ProductName.c_str());
 		Serial.printf ("     PID: 0x%04X  VID: 0x%04X\r\n", (uint16_t)ControllerID, VENDOR_ID);
 		Serial.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-		#if BATT_LEVEL
-		Serial.println("Battery level enabled!");
-		#endif
 		#if SIM_CONTROLS
 		Serial.println("SIM controls enabled!");
 		#endif
@@ -661,9 +596,7 @@ void setup()
     bleGamepadConfig.setSimulationMax(SIM_MAX);
     #endif
 
-    #if BATT_LEVEL
 	bleGamepad.setBatteryLevel(mapRangeFloat(LastSentBattery, BATT_NO_NOISE, BATT_FULL, 0.0, 100.0)); // map voltage to percentage
-    #endif
 
     // bleGamepadConfig.setHidReportId(0x5); // unneeded right?
 	bleGamepadConfig.setVid(VENDOR_ID);
@@ -738,10 +671,8 @@ void loop()
 	int steeringPosition = AverageAdc(analogRead(PIN_STR), AdcBufferThrottle, ADC_FILT_LEN); // NOTE: 12 bit ADC (0-4095)
 	int throttleTrimPosition = AverageAdc(analogRead(PIN_THT_TRM), AdcBufferSteeringTrim, ADC_FILT_LEN); // NOTE: 12 bit ADC (0-4095)
 	int steeringTrimPosition = AverageAdc(analogRead(PIN_STR_TRM), AdcBufferThrottleTrim, ADC_FILT_LEN); // NOTE: 12 bit ADC (0-4095)
-	#if BATT_LEVEL
 	float pwrV5dcLevel = GetVoltageFromAdc(AverageAdc(analogRead(PIN_V5DC_ADC) + V5DC_ADC_OFFSET, AdcBufferPwrV5dc, V5DC_FILT_LEN)); // NOTE: 12 bit ADC (0-4095)
 	float batteryLevel = GetVoltageFromAdc(AverageAdc(analogRead(PIN_BATT_ADC) + BATT_ADC_OFFSET, AdcBufferBattery, BATT_FILT_LEN)); // NOTE: 12 bit ADC (0-4095)
-	#endif
 
 	bool newThumbBtn = !digitalRead(PIN_THMB_BTN);
 	bool newMenuBtn  = !digitalRead(PIN_MENU_BTN);
@@ -892,15 +823,6 @@ void loop()
 		if(PrintCountdown == 0)
 		{
 			PrintCountdown = PRINT_PERIOD;
-			#if BATT_LEVEL
-
-				Serial.printf("BATT %0.2f%% %0.04f V  V5DC: %0.04f V   TH:%d    ST:%d\r\n",
-							 mapRangeFloat(batteryLevel, BATT_NO_NOISE, BATT_FULL, 0.0, 99.0), 
-							 batteryLevel, 
-							 pwrV5dcLevel, 
-							 throttlePosition, 
-							 steeringPosition);
-			#endif
 			if(MenuMode)
 			{
 				if(adjustedThrottleTrim > ADC_HALF)      { Serial.printf("Throttle Trim: +%02d%% (%04d/%04d)     ", mapRange(adjustedThrottleTrim, ADC_HALF, ADC_MAX, 0, 100), adjustedThrottleTrim, ADC_MAX); }
@@ -911,35 +833,15 @@ void loop()
 				else if(adjustedSteeringTrim < ADC_HALF) { Serial.printf("Steering Trim: -%02d%% (%04d/%04d)\r\n", mapRange(adjustedSteeringTrim, 0, ADC_HALF, 100, 0), adjustedSteeringTrim, ADC_MAX); }
 				else/*adjustedSteeringTrim == ADC_HALF*/ { Serial.printf("Steering Trim: %02d%% (%04d/%04d)\r\n", 0, adjustedSteeringTrim, ADC_MAX); }
 			}
+			else
+			{
+				Serial.printf("BATT %0.2f%% %0.04f V  V5DC: %0.04f V   TH:%d    ST:%d\r\n", mapRangeFloat(batteryLevel, BATT_NO_NOISE, BATT_FULL, 0.0, 99.0), 
+																							batteryLevel, 
+																							pwrV5dcLevel, 
+																							throttlePosition, 
+																							steeringPosition);
+			}
 		}
-	#endif
-	
-	#if 0
-	// +==============================+
-	// |     button reset limits      |
-	// +==============================+
-	if(newSetBtn &&
-		(  ThrottleMin     != STARTING_LIMITS
-		|| ThrottleMax     != ADC_MAX - STARTING_BRAKE
-		|| SteeringMin     != STARTING_LIMITS
-		|| SteeringMax     != ADC_MAX - STARTING_LIMITS
-		|| ThrottleTrimMin != STARTING_LIMITS
-		|| ThrottleTrimMax != ADC_MAX - STARTING_LIMITS
-		|| SteeringTrimMin != STARTING_LIMITS
-		|| SteeringTrimMax != ADC_MAX - STARTING_LIMITS ))
-	{
-		#if PRINTOUTS
-			Serial.println("Restetting ADC Limits!");
-		#endif
-		ThrottleMin = STARTING_LIMITS;
-		ThrottleMax = ADC_MAX - STARTING_BRAKE;
-		SteeringMin = STARTING_LIMITS;
-		SteeringMax = ADC_MAX - STARTING_LIMITS;
-		ThrottleTrimMin = STARTING_LIMITS;
-		ThrottleTrimMax = ADC_MAX - STARTING_LIMITS;
-		SteeringTrimMin = STARTING_LIMITS;
-		SteeringTrimMax = ADC_MAX - STARTING_LIMITS;
-	}
 	#endif
 
 	// +==============================+
@@ -964,8 +866,6 @@ void loop()
 		}
 
 	}
-
-	#if BATT_LEVEL
 	else if(batteryLevel <= BATT_NO_NOISE && BatteryLowIndication) // Low battery voltage! flash LEDs (red only?)
 	{
 		if(batteryLevel < pwrV5dcLevel) // someone else is powering the 5V rail
@@ -998,8 +898,6 @@ void loop()
 			Serial.println("Battery is power us, so flashing allowed!");
 		#endif
 	}
-	#endif
-
 	else
 	{
 		analogWrite(PIN_LED_RED,   mapRange(adjustedThrottle, 0, ADC_MAX, PWM_LED_MIN, PWM_LED_MAX));
@@ -1029,57 +927,36 @@ void loop()
 	// +--------------------------------------------------------------+
     if (bleGamepad.isConnected())
     {
-		#if FINISHED_CONTROLLER
-			if(AndroidMode)
-			{
-		        if     (!bleGamepad.isPressed(AND_THMB_BTN) &&  newThumbBtn){ bleGamepad.press  (AND_THMB_BTN); }
-		        else if( bleGamepad.isPressed(AND_THMB_BTN) && !newThumbBtn){ bleGamepad.release(AND_THMB_BTN); }
-		        if     (!bleGamepad.isPressed(AND_SET_BTN)  &&  newSetBtn)  { bleGamepad.press  (AND_SET_BTN);  }
-		        else if( bleGamepad.isPressed(AND_SET_BTN)  && !newSetBtn)  { bleGamepad.release(AND_SET_BTN);  }
-		        if     (!bleGamepad.isPressed(AND_MENU_BTN) &&  newMenuBtn) { bleGamepad.press  (AND_MENU_BTN); }
-		        else if( bleGamepad.isPressed(AND_MENU_BTN) && !newMenuBtn) { bleGamepad.release(AND_MENU_BTN); }
-		        if     (!bleGamepad.isPressed(AND_TOP_BTN)  &&  newTopBtn)  { bleGamepad.press  (AND_TOP_BTN);  }
-		        else if( bleGamepad.isPressed(AND_TOP_BTN)  && !newTopBtn)  { bleGamepad.release(AND_TOP_BTN);  }
-		        if     (!bleGamepad.isPressed(AND_MID_BTN)  &&  newMidBtn)  { bleGamepad.press  (AND_MID_BTN);  }
-		        else if( bleGamepad.isPressed(AND_MID_BTN)  && !newMidBtn)  { bleGamepad.release(AND_MID_BTN);  }
-		        if     (!bleGamepad.isPressed(AND_BTM_BTN)  &&  newBtmBtn)  { bleGamepad.press  (AND_BTM_BTN);  }
-		        else if( bleGamepad.isPressed(AND_BTM_BTN)  && !newBtmBtn)  { bleGamepad.release(AND_BTM_BTN);  }
-		    }
-		    else
-		    {
-		    	if     (!bleGamepad.isPressed(BLE_THMB_BTN) &&  newThumbBtn){ bleGamepad.press  (BLE_THMB_BTN); }
-		        else if( bleGamepad.isPressed(BLE_THMB_BTN) && !newThumbBtn){ bleGamepad.release(BLE_THMB_BTN); }
-		        if     (!bleGamepad.isPressed(BLE_SET_BTN)  &&  newSetBtn)  { bleGamepad.press  (BLE_SET_BTN);  }
-		        else if( bleGamepad.isPressed(BLE_SET_BTN)  && !newSetBtn)  { bleGamepad.release(BLE_SET_BTN);  }
-		        if     (!bleGamepad.isPressed(BLE_MENU_BTN) &&  newMenuBtn) { bleGamepad.press  (BLE_MENU_BTN); }
-		        else if( bleGamepad.isPressed(BLE_MENU_BTN) && !newMenuBtn) { bleGamepad.release(BLE_MENU_BTN); }
-		        if     (!bleGamepad.isPressed(BLE_TOP_BTN)  &&  newTopBtn)  { bleGamepad.press  (BLE_TOP_BTN);  }
-		        else if( bleGamepad.isPressed(BLE_TOP_BTN)  && !newTopBtn)  { bleGamepad.release(BLE_TOP_BTN);  }
-		        if     (!bleGamepad.isPressed(BLE_MID_BTN)  &&  newMidBtn)  { bleGamepad.press  (BLE_MID_BTN);  }
-		        else if( bleGamepad.isPressed(BLE_MID_BTN)  && !newMidBtn)  { bleGamepad.release(BLE_MID_BTN);  }
-		        if     (!bleGamepad.isPressed(BLE_BTM_BTN)  &&  newBtmBtn)  { bleGamepad.press  (BLE_BTM_BTN);  }
-		        else if( bleGamepad.isPressed(BLE_BTM_BTN)  && !newBtmBtn)  { bleGamepad.release(BLE_BTM_BTN);  }
-		    }
-		#else // NO Nose buttons CONTROLLER
-			if(AndroidMode)
-			{
-		        if     (!bleGamepad.isPressed(AND_THMB_BTN) &&  newThumbBtn){ bleGamepad.press  (AND_THMB_BTN); }
-		        else if( bleGamepad.isPressed(AND_THMB_BTN) && !newThumbBtn){ bleGamepad.release(AND_THMB_BTN); }
-		        if     (!bleGamepad.isPressed(AND_SET_BTN)  &&  newSetBtn)  { bleGamepad.press  (AND_SET_BTN);  }
-		        else if( bleGamepad.isPressed(AND_SET_BTN)  && !newSetBtn)  { bleGamepad.release(AND_SET_BTN);  }
-		        if     (!bleGamepad.isPressed(AND_MENU_BTN) &&  newMenuBtn) { bleGamepad.press  (AND_MENU_BTN); }
-		        else if( bleGamepad.isPressed(AND_MENU_BTN) && !newMenuBtn) { bleGamepad.release(AND_MENU_BTN); }
-		    }
-		    else
-		    {
-		    	if     (!bleGamepad.isPressed(BLE_THMB_BTN) &&  newThumbBtn){ bleGamepad.press  (BLE_THMB_BTN); }
-		        else if( bleGamepad.isPressed(BLE_THMB_BTN) && !newThumbBtn){ bleGamepad.release(BLE_THMB_BTN); }
-		        if     (!bleGamepad.isPressed(BLE_SET_BTN)  &&  newSetBtn)  { bleGamepad.press  (BLE_SET_BTN);  }
-		        else if( bleGamepad.isPressed(BLE_SET_BTN)  && !newSetBtn)  { bleGamepad.release(BLE_SET_BTN);  }
-		        if     (!bleGamepad.isPressed(BLE_MENU_BTN) &&  newMenuBtn) { bleGamepad.press  (BLE_MENU_BTN); }
-		        else if( bleGamepad.isPressed(BLE_MENU_BTN) && !newMenuBtn) { bleGamepad.release(BLE_MENU_BTN); }
-		    }
-		#endif
+		if(AndroidMode)
+		{
+	        if     (!bleGamepad.isPressed(AND_THMB_BTN) &&  newThumbBtn){ bleGamepad.press  (AND_THMB_BTN); }
+	        else if( bleGamepad.isPressed(AND_THMB_BTN) && !newThumbBtn){ bleGamepad.release(AND_THMB_BTN); }
+	        if     (!bleGamepad.isPressed(AND_SET_BTN)  &&  newSetBtn)  { bleGamepad.press  (AND_SET_BTN);  }
+	        else if( bleGamepad.isPressed(AND_SET_BTN)  && !newSetBtn)  { bleGamepad.release(AND_SET_BTN);  }
+	        if     (!bleGamepad.isPressed(AND_MENU_BTN) &&  newMenuBtn) { bleGamepad.press  (AND_MENU_BTN); }
+	        else if( bleGamepad.isPressed(AND_MENU_BTN) && !newMenuBtn) { bleGamepad.release(AND_MENU_BTN); }
+	        if     (!bleGamepad.isPressed(AND_TOP_BTN)  &&  newTopBtn)  { bleGamepad.press  (AND_TOP_BTN);  }
+	        else if( bleGamepad.isPressed(AND_TOP_BTN)  && !newTopBtn)  { bleGamepad.release(AND_TOP_BTN);  }
+	        if     (!bleGamepad.isPressed(AND_MID_BTN)  &&  newMidBtn)  { bleGamepad.press  (AND_MID_BTN);  }
+	        else if( bleGamepad.isPressed(AND_MID_BTN)  && !newMidBtn)  { bleGamepad.release(AND_MID_BTN);  }
+	        if     (!bleGamepad.isPressed(AND_BTM_BTN)  &&  newBtmBtn)  { bleGamepad.press  (AND_BTM_BTN);  }
+	        else if( bleGamepad.isPressed(AND_BTM_BTN)  && !newBtmBtn)  { bleGamepad.release(AND_BTM_BTN);  }
+	    }
+	    else
+	    {
+	    	if     (!bleGamepad.isPressed(BLE_THMB_BTN) &&  newThumbBtn){ bleGamepad.press  (BLE_THMB_BTN); }
+	        else if( bleGamepad.isPressed(BLE_THMB_BTN) && !newThumbBtn){ bleGamepad.release(BLE_THMB_BTN); }
+	        if     (!bleGamepad.isPressed(BLE_SET_BTN)  &&  newSetBtn)  { bleGamepad.press  (BLE_SET_BTN);  }
+	        else if( bleGamepad.isPressed(BLE_SET_BTN)  && !newSetBtn)  { bleGamepad.release(BLE_SET_BTN);  }
+	        if     (!bleGamepad.isPressed(BLE_MENU_BTN) &&  newMenuBtn) { bleGamepad.press  (BLE_MENU_BTN); }
+	        else if( bleGamepad.isPressed(BLE_MENU_BTN) && !newMenuBtn) { bleGamepad.release(BLE_MENU_BTN); }
+	        if     (!bleGamepad.isPressed(BLE_TOP_BTN)  &&  newTopBtn)  { bleGamepad.press  (BLE_TOP_BTN);  }
+	        else if( bleGamepad.isPressed(BLE_TOP_BTN)  && !newTopBtn)  { bleGamepad.release(BLE_TOP_BTN);  }
+	        if     (!bleGamepad.isPressed(BLE_MID_BTN)  &&  newMidBtn)  { bleGamepad.press  (BLE_MID_BTN);  }
+	        else if( bleGamepad.isPressed(BLE_MID_BTN)  && !newMidBtn)  { bleGamepad.release(BLE_MID_BTN);  }
+	        if     (!bleGamepad.isPressed(BLE_BTM_BTN)  &&  newBtmBtn)  { bleGamepad.press  (BLE_BTM_BTN);  }
+	        else if( bleGamepad.isPressed(BLE_BTM_BTN)  && !newBtmBtn)  { bleGamepad.release(BLE_BTM_BTN);  }
+	    }
 
         bleGamepad.setX(mapRange(trimmedSteering, 0, ADC_MAX, AXIS_MIN, AXIS_MAX));
 	    bleGamepad.setY(mapRange(trimmedThrottle, 0, ADC_MAX, AXIS_MIN, AXIS_MAX));
@@ -1095,39 +972,35 @@ void loop()
 		    bleGamepad.setAccelerator(mapRange(trimmedThrottle, 0, ADC_HALF, SIM_MIN, SIM_MAX)); // TODO: verify this is mapped correctly
         #endif
 
-		#if BATT_LEVEL
-	    	// +==============================+
-			// |           Battery            |
-			// +==============================+ // this needs to only update like every 5% or 30s or something
-			if(batteryLevel < pwrV5dcLevel && !PowerFromUSB) // Battery is lower than 5V rail so we are USB powered (report 100% to have windows hide battery level)
-			{
-				PowerFromUSB = true;
-				bleGamepad.setBatteryLevel(101);
-				#if PRINTOUTS
-					Serial.println("On USB Power!");
-				#endif
-			}
-			else if(PowerFromUSB && (batteryLevel - pwrV5dcLevel) > BATT_D_HYST) // back to battery power!
-			{
-				PowerFromUSB = false;
-				// bleGamepad.setBatteryLevel(mapRangeFloat(batteryLevel, BATT_NO_NOISE, BATT_FULL, 0.0, 100.0)); // map voltage to percentage
-				#if PRINTOUTS
-					Serial.println("On BATT Power!");
-				#endif
-			}
+    	// +==============================+
+		// |           Battery            |
+		// +==============================+ // this needs to only update like every 5% or 30s or something
+		if(batteryLevel < pwrV5dcLevel && !PowerFromUSB) // Battery is lower than 5V rail so we are USB powered (report 100% to have windows hide battery level)
+		{
+			PowerFromUSB = true;
+			bleGamepad.setBatteryLevel(101);
+			#if PRINTOUTS
+				Serial.println("On USB Power!");
+			#endif
+		}
+		else if(PowerFromUSB && (batteryLevel - pwrV5dcLevel) > BATT_D_HYST) // back to battery power!
+		{
+			PowerFromUSB = false;
+			// bleGamepad.setBatteryLevel(mapRangeFloat(batteryLevel, BATT_NO_NOISE, BATT_FULL, 0.0, 100.0)); // map voltage to percentage
+			#if PRINTOUTS
+				Serial.println("On BATT Power!");
+			#endif
+		}
 
-			if(!PowerFromUSB) // Battery is powering the 5V rail (running on bettery)
+		if(!PowerFromUSB) // Battery is powering the 5V rail (running on bettery)
+		{
+			if(AdcUpdateCountdown == 0 && (batteryLevel > (LastSentBattery + BATT_REP_DELTA) || batteryLevel < (LastSentBattery - BATT_REP_DELTA)))
 			{
-				if(AdcUpdateCountdown == 0 && (batteryLevel > (LastSentBattery + BATT_REP_DELTA) || batteryLevel < (LastSentBattery - BATT_REP_DELTA)))
-				{
-					bleGamepad.setBatteryLevel(mapRangeFloat(batteryLevel, BATT_NO_NOISE, BATT_FULL, 0.0, 100.0)); // map voltage to percentage
-					LastSentBattery = batteryLevel;
-					AdcUpdateCountdown = BATT_UPDATE_PERIOD;
-				}
+				bleGamepad.setBatteryLevel(mapRangeFloat(batteryLevel, BATT_NO_NOISE, BATT_FULL, 0.0, 100.0)); // map voltage to percentage
+				LastSentBattery = batteryLevel;
+				AdcUpdateCountdown = BATT_UPDATE_PERIOD;
 			}
-			
-		#endif
-
+		}
 
         bleGamepad.sendReport();
     }
@@ -1140,11 +1013,9 @@ void loop()
 		usbGamepad.setButton(USB_THMB_BTN, newThumbBtn);
 		usbGamepad.setButton(USB_SET_BTN,  newSetBtn);
 		usbGamepad.setButton(USB_MENU_BTN, newMenuBtn);
-		#if FINISHED_CONTROLLER
 		usbGamepad.setButton(USB_TOP_BTN,  newTopBtn);
 		usbGamepad.setButton(USB_MID_BTN,  newMidBtn);
 		usbGamepad.setButton(USB_BTM_BTN,  newBtmBtn);
-		#endif
 
 		// +==============================+
 		// |          Joysticks           |
@@ -1163,9 +1034,7 @@ void loop()
 	LastThrottleTrim = throttlePosition;
 	LastSteering     = throttleTrimPosition;
 	LastThrottle     = steeringTrimPosition;
-	#if BATT_LEVEL
 	LastSentBattery  = batteryLevel;
-	#endif
 	LastThumbBtn     = newThumbBtn;
 	LastMenuBtn      = newMenuBtn;
 	LastSetBtn       = newSetBtn;
